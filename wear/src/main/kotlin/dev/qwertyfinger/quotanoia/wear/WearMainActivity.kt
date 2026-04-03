@@ -34,6 +34,7 @@ class WearMainActivity : ComponentActivity() {
 
             // Pull existing data from Data Layer on launch + poll for updates
             LaunchedEffect(Unit) {
+                logConnectedNodes()
                 pullDataFromPhone(store)
                 entries = store.getAll()
 
@@ -120,6 +121,18 @@ class WearMainActivity : ComponentActivity() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to pull data from phone", e)
+        }
+    }
+
+    private suspend fun logConnectedNodes() {
+        try {
+            val nodes = Wearable.getNodeClient(this).connectedNodes.await()
+            Log.d(TAG, "Connected nodes: ${nodes.size}")
+            nodes.forEach { node ->
+                Log.d(TAG, "  Node: ${node.displayName} (id=${node.id}, nearby=${node.isNearby})")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get connected nodes", e)
         }
     }
 

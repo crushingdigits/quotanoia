@@ -2,10 +2,11 @@ package dev.qwertyfinger.quotanoia.sync
 
 import android.content.Context
 import com.google.android.gms.wearable.DataClient
-import timber.log.Timber
+import com.google.android.gms.wearable.NodeClient
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import dev.qwertyfinger.quotanoia.data.AccountState
+import timber.log.Timber
 
 /**
  * Pushes account usage data to the paired watch via the Wearable Data Layer.
@@ -14,8 +15,19 @@ import dev.qwertyfinger.quotanoia.data.AccountState
 class WearSyncManager(context: Context) {
 
     private val dataClient: DataClient = Wearable.getDataClient(context)
+    private val nodeClient: NodeClient = Wearable.getNodeClient(context)
 
     fun syncStates(states: List<AccountState>) {
+        // Log connected nodes for diagnostics
+        nodeClient.connectedNodes
+            .addOnSuccessListener { nodes ->
+                Timber.d("Connected wearable nodes: %d", nodes.size)
+                nodes.forEach { node ->
+                    Timber.d("  Node: %s (id=%s, nearby=%s)", node.displayName, node.id, node.isNearby)
+                }
+            }
+            .addOnFailureListener { Timber.w(it, "Failed to get connected nodes") }
+
         val request = PutDataMapRequest.create(PATH_USAGE).apply {
             dataMap.putInt("count", states.size)
             dataMap.putLong("timestamp", System.currentTimeMillis())
@@ -39,8 +51,10 @@ class WearSyncManager(context: Context) {
         request.setUrgent()
 
         dataClient.putDataItem(request.asPutDataRequest())
-            .addOnSuccessListener { Timber.d("Synced %d accounts to watch", states.size) }
-            .addOnFailureListener { Timber.w(it, "Watch sync failed") }
+            .addOnSuccessListener { item ->
+                Timber.d("putDataItem succeeded: uri=%s", item.uri)
+            }
+            .addOnFailureListener { Timber.w(it, "putDataItem failed") }
     }
 
     companion object {
