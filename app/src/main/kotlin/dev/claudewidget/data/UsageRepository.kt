@@ -49,10 +49,13 @@ class UsageRepository(
                     )
                 },
                 onFailure = { throwable ->
-                    val error = (throwable as? ApiClient.ApiException)?.accountError
+                    val apiEx = throwable as? ApiClient.ApiException
+                    val error = apiEx?.accountError
                         ?: AccountError.NetworkError(throwable.message ?: "Unknown")
+                    val serverRetry = apiEx?.retryAfterMs
                     val newBackoff = if (error.isTransient) {
-                        min(state.backoffMs * 2, MAX_BACKOFF_MS)
+                        val exponential = min(state.backoffMs * 2, MAX_BACKOFF_MS)
+                        if (serverRetry != null) maxOf(exponential, serverRetry) else exponential
                     } else {
                         state.backoffMs
                     }
@@ -86,10 +89,13 @@ class UsageRepository(
                 state.copy(usage = usage, error = null, backoffMs = BASE_POLL_INTERVAL_MS)
             },
             onFailure = { throwable ->
-                val error = (throwable as? ApiClient.ApiException)?.accountError
+                val apiEx = throwable as? ApiClient.ApiException
+                val error = apiEx?.accountError
                     ?: AccountError.NetworkError(throwable.message ?: "Unknown")
+                val serverRetry = apiEx?.retryAfterMs
                 val newBackoff = if (error.isTransient) {
-                    min(state.backoffMs * 2, MAX_BACKOFF_MS)
+                    val exponential = min(state.backoffMs * 2, MAX_BACKOFF_MS)
+                    if (serverRetry != null) maxOf(exponential, serverRetry) else exponential
                 } else {
                     state.backoffMs
                 }

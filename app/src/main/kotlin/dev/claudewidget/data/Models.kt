@@ -53,4 +53,4 @@ data class AccountState(
 }
 
 const val BASE_POLL_INTERVAL_MS = 5 * 60 * 1000L   // 5 minutes
-const val MAX_BACKOFF_MS = 60 * 60 * 1000L          // 60 minutes
+const val MAX_BACKOFF_MS = 30 * 60 * 1000L          // 30 minutes (unless server says more)
