@@ -1,38 +1,29 @@
 package dev.qwertyfinger.quotanoia.wear
 
 import android.util.Log
-import com.google.android.gms.wearable.DataEventBuffer
-import com.google.android.gms.wearable.DataEvent
-import com.google.android.gms.wearable.DataMapItem
+import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
+import org.json.JSONArray
 
 /**
- * Receives usage data pushed from the phone app via Wearable Data Layer.
+ * Receives usage data pushed from the phone app via MessageClient.
  * Updates the local cache and requests a tile refresh.
  */
 class DataLayerListenerService : WearableListenerService() {
 
-    override fun onDataChanged(dataEvents: DataEventBuffer) {
-        for (event in dataEvents) {
-            if (event.type != DataEvent.TYPE_CHANGED) continue
-            if (event.dataItem.uri.path != PATH_USAGE) continue
+    override fun onMessageReceived(messageEvent: MessageEvent) {
+        Log.d(TAG, "Message received: path=${messageEvent.path}, from=${messageEvent.sourceNodeId}")
 
-            val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
-            val count = dataMap.getInt("count", 0)
+        if (messageEvent.path != PATH_USAGE) return
 
+        try {
+            val json = String(messageEvent.data, Charsets.UTF_8)
+            val arr = JSONArray(json)
+            val count = arr.length()
             Log.d(TAG, "Received $count accounts from phone")
 
             val store = WearApp.instance.store
-            store.updateFromDataMap(count) { key ->
-                when {
-                    key.endsWith("_id") || key.endsWith("_name") || key.endsWith("_error_msg") ->
-                        dataMap.getString(key)
-                    key.endsWith("_pct") -> dataMap.getFloat(key)
-                    key.endsWith("_has_data") || key.endsWith("_has_error") ->
-                        dataMap.getBoolean(key)
-                    else -> null
-                }
-            }
+            store.updateFromJson(arr)
 
             // Request tile update
             try {
@@ -41,6 +32,8 @@ class DataLayerListenerService : WearableListenerService() {
             } catch (e: Exception) {
                 Log.w(TAG, "Could not request tile update", e)
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to parse message", e)
         }
     }
 
