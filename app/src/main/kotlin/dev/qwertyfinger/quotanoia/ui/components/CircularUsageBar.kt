@@ -2,6 +2,9 @@ package dev.qwertyfinger.quotanoia.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -65,20 +68,20 @@ fun CircularUsageBar(
             }
         }
 
-        // Center text
-        Text(
-            text = "${utilization.toInt()}%",
-            color = progressColor,
-            fontSize = if (size > 60.dp) 16.sp else 12.sp,
-            fontWeight = FontWeight.Bold,
-        )
-
-        // Label below percentage
-        Text(
-            text = label,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = if (size > 60.dp) 10.sp else 8.sp,
-            modifier = Modifier.align(Alignment.BottomCenter),
-        )
+        // Center text: percentage + label stacked
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "${utilization.toInt()}%",
+                color = progressColor,
+                fontSize = if (size > 60.dp) 16.sp else 12.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(1.dp))
+            Text(
+                text = label,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = if (size > 60.dp) 10.sp else 8.sp,
+            )
+        }
     }
 }
