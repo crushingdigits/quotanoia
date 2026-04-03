@@ -5,6 +5,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONObject
+import androidx.annotation.VisibleForTesting
 import timber.log.Timber
 import java.io.IOException
 import java.time.Instant
@@ -81,7 +82,8 @@ class ApiClient {
         }
     }
 
-    private fun parseUsage(body: String, newSessionKey: String?): Result<UsageFetchResult> {
+    @VisibleForTesting
+    internal fun parseUsage(body: String, newSessionKey: String?): Result<UsageFetchResult> {
         return try {
             val json = JSONObject(body)
             val fiveHour = json.getJSONObject("five_hour")

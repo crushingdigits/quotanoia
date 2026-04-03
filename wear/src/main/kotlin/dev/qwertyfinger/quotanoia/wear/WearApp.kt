@@ -23,7 +23,11 @@ class WearApp : Application(), MessageClient.OnMessageReceivedListener {
     }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
-        Log.d(TAG, "Message received: path=${messageEvent.path}, from=${messageEvent.sourceNodeId}, size=${messageEvent.data.size}")
+        Log.d(
+            TAG,
+            "Message received: path=${messageEvent.path}, " +
+                "from=${messageEvent.sourceNodeId}, size=${messageEvent.data.size}",
+        )
 
         if (messageEvent.path != PATH_USAGE) return
 

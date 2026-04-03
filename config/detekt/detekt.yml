@@ -1,0 +1,69 @@
+# Detekt configuration for Quotanoia
+# Builds upon the default config; only overrides are listed here.
+
+complexity:
+  active: true
+  LongMethod:
+    active: true
+    threshold: 120               # Compose UI functions are naturally long
+  LongParameterList:
+    active: true
+    functionThreshold: 8         # Compose functions often have many params
+    constructorThreshold: 8
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 20
+  TooManyFunctions:
+    active: true
+    thresholdInFiles: 20
+    thresholdInClasses: 15
+
+style:
+  active: true
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+    excludeCommentStatements: true
+  MagicNumber:
+    active: false                # Compose UI code is full of numeric literals
+  WildcardImport:
+    active: false                # Android Studio auto-imports with wildcards
+  ReturnCount:
+    active: true
+    max: 4
+  ForbiddenComment:
+    active: false
+  UnusedPrivateMember:
+    active: true
+    ignoreAnnotated:
+      - 'Preview'
+      - 'Composable'
+
+naming:
+  active: true
+  TopLevelPropertyNaming:
+    active: true
+    constantPattern: '[A-Z][A-Za-z0-9_]*'   # Allow Compose color vals
+  FunctionNaming:
+    active: true
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'  # Allow PascalCase for Composables
+  ConstructorParameterNaming:
+    active: true
+    parameterPattern: '[a-z][A-Za-z0-9]*'
+  MatchingDeclarationName:
+    active: false                # Compose files often have multiple top-level composables
+
+potential-bugs:
+  active: true
+  UnsafeCast:
+    active: true
+  UselessPostfixExpression:
+    active: true
+
+coroutines:
+  active: true
+
+exceptions:
+  active: true
+  TooGenericExceptionCaught:
+    active: false                # Catching Exception is common for JSON/network parsing

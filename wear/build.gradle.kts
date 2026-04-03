@@ -17,7 +17,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 
@@ -34,6 +39,15 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    lint {
+        xmlReport = true
+        htmlReport = true
+        checkDependencies = true
+        warningsAsErrors = false
+        abortOnError = false
     }
 }
 

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -17,7 +18,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 
@@ -35,6 +41,20 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    lint {
+        xmlReport = true
+        htmlReport = true
+        checkDependencies = true
+        warningsAsErrors = false
+        abortOnError = false
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
     }
 }
 
@@ -61,4 +81,13 @@ dependencies {
     implementation(libs.workmanager)
     implementation(libs.security.crypto)
     implementation(libs.play.services.wearable)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.coroutines.test)
+    testImplementation("org.json:json:20231013")
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.preview.scanner)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.composable.preview.scanner)
 }
