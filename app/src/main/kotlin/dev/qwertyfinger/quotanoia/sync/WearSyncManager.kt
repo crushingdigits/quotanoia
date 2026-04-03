@@ -49,6 +49,8 @@ class WearSyncManager(context: Context) {
                 if (state.usage != null) {
                     put("5h_pct", state.usage.fiveHour.utilization.toDouble())
                     put("7d_pct", state.usage.sevenDay.utilization.toDouble())
+                    put("5h_resets_at", state.usage.fiveHour.resetsAt.toEpochMilli())
+                    put("7d_resets_at", state.usage.sevenDay.resetsAt.toEpochMilli())
                 }
                 put("has_error", state.hasError)
                 put("error_msg", state.error?.displayMessage ?: "")

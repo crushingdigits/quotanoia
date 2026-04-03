@@ -30,14 +30,13 @@ class WearMainActivity : ComponentActivity() {
             val store = WearApp.instance.store
             var entries by remember { mutableStateOf(store.getAll()) }
 
-            // Read cached data + poll for updates from MessageClient
+            // Tick for live reset countdowns + pick up new data
+            var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
             LaunchedEffect(Unit) {
                 logConnectedNodes()
-                entries = store.getAll()
-
-                // Re-read store periodically in case DataLayerListenerService updates it
                 while (true) {
-                    delay(3_000)
+                    delay(1_000)
+                    nowMs = System.currentTimeMillis()
                     entries = store.getAll()
                 }
             }
@@ -52,27 +51,27 @@ class WearMainActivity : ComponentActivity() {
                     Text(
                         text = "Open phone app\nto add accounts",
                         color = Color(0xFFAAAAAA),
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         textAlign = TextAlign.Center,
                     )
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(12.dp),
+                        contentPadding = PaddingValues(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         item {
                             Text(
                                 "quotanoia",
                                 color = Color(0xFF7B9CFF),
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                             )
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(10.dp))
                         }
                         items(entries) { entry ->
-                            WearAccountItem(entry.account.name, entry.usage)
-                            Spacer(Modifier.height(8.dp))
+                            WearAccountItem(entry.account.name, entry.usage, nowMs)
+                            Spacer(Modifier.height(10.dp))
                         }
                     }
                 }
@@ -98,27 +97,82 @@ class WearMainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun WearAccountItem(name: String, usage: WearAccountStore.WearUsage) {
+private fun WearAccountItem(name: String, usage: WearAccountStore.WearUsage, nowMs: Long) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = name,
             color = if (usage.hasError) Color(0xFFE53935) else Color(0xFFE0E0E0),
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
         )
         if (usage.fiveHourPct >= 0) {
             Spacer(Modifier.height(4.dp))
-            Text(
-                text = "5h: ${usage.fiveHourPct.toInt()}%  7d: ${usage.sevenDayPct.toInt()}%",
-                color = Color(0xFFB0B0B0),
-                fontSize = 11.sp,
-            )
+            Row {
+                ColoredPct("5h:", usage.fiveHourPct)
+                Spacer(Modifier.width(12.dp))
+                ColoredPct("7d:", usage.sevenDayPct)
+            }
+            Spacer(Modifier.height(2.dp))
+            Row {
+                ResetTime("↻", usage.fiveHourResetsAtMs, nowMs)
+                Spacer(Modifier.width(12.dp))
+                ResetTime("↻", usage.sevenDayResetsAtMs, nowMs)
+            }
         } else if (usage.hasError) {
             Text(
                 text = usage.errorMsg ?: "Error",
                 color = Color(0xFFE53935),
-                fontSize = 10.sp,
+                fontSize = 12.sp,
             )
         }
+    }
+}
+
+@Composable
+private fun ColoredPct(label: String, pct: Float) {
+    Text(
+        text = "$label${pct.toInt()}%",
+        color = pctToColor(pct),
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Bold,
+    )
+}
+
+@Composable
+private fun ResetTime(prefix: String, resetMs: Long, nowMs: Long) {
+    val text = if (resetMs <= 0) {
+        "$prefix?"
+    } else {
+        val diff = resetMs - nowMs
+        if (diff <= 0) "${prefix}now" else "$prefix${formatDuration(diff)}"
+    }
+    Text(
+        text = text,
+        color = Color(0xFF888888),
+        fontSize = 11.sp,
+    )
+}
+
+private fun formatDuration(ms: Long): String {
+    val totalSec = ms / 1000
+    val days = totalSec / 86400
+    val hours = (totalSec % 86400) / 3600
+    val mins = (totalSec % 3600) / 60
+    val secs = totalSec % 60
+    return when {
+        days > 0 -> "${days}d ${hours}h ${mins}m"
+        hours > 0 -> "${hours}h ${mins}m ${secs}s"
+        mins > 0 -> "${mins}m ${secs}s"
+        else -> "${secs}s"
+    }
+}
+
+private fun pctToColor(pct: Float): Color {
+    val clamped = pct.coerceIn(0f, 100f)
+    return when {
+        clamped <= 40f -> Color(0xFF4CAF50)
+        clamped <= 70f -> Color(0xFFFFCA28)
+        clamped <= 85f -> Color(0xFFFF9800)
+        else -> Color(0xFFE53935)
     }
 }
