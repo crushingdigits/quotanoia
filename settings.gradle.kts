@@ -15,6 +15,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Quotanoia"
+rootProject.name = "quotanoia"
 include(":app")
 include(":wear")
