@@ -8,7 +8,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "dev.qwertyfinger.quotanoia.wear"
+        applicationId = "dev.qwertyfinger.quotanoia"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
