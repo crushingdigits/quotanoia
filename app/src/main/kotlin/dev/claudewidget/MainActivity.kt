@@ -1,0 +1,72 @@
+package dev.claudewidget
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.claudewidget.ui.screens.AccountFormData
+import dev.claudewidget.ui.screens.AccountListScreen
+import dev.claudewidget.ui.screens.AddAccountDialog
+import dev.claudewidget.ui.theme.ClaudeUsageTheme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        setContent {
+            ClaudeUsageTheme {
+                val vm: MainViewModel = viewModel()
+                val states by vm.states.collectAsState()
+                val isRefreshing by vm.isRefreshing.collectAsState()
+
+                var showDialog by remember { mutableStateOf(false) }
+                var editFormData by remember { mutableStateOf<AccountFormData?>(null) }
+
+                AccountListScreen(
+                    states = states,
+                    onAddAccount = {
+                        editFormData = AccountFormData()
+                        showDialog = true
+                    },
+                    onEditAccount = { id ->
+                        val state = states.find { it.account.id == id }
+                        if (state != null) {
+                            editFormData = AccountFormData(
+                                id = state.account.id,
+                                name = state.account.name,
+                                token = state.account.token,
+                            )
+                            showDialog = true
+                        }
+                    },
+                    onDeleteAccount = { id -> vm.deleteAccount(id) },
+                    onRefresh = { vm.refresh() },
+                    isRefreshing = isRefreshing,
+                )
+
+                if (showDialog && editFormData != null) {
+                    AddAccountDialog(
+                        initial = editFormData!!,
+                        onDismiss = {
+                            showDialog = false
+                            editFormData = null
+                        },
+                        onSave = { name, token ->
+                            val form = editFormData!!
+                            if (form.id != null) {
+                                vm.updateAccount(form.id, name, token)
+                            } else {
+                                vm.addAccount(name, token)
+                            }
+                            showDialog = false
+                            editFormData = null
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
