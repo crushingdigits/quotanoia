@@ -2,6 +2,7 @@ package dev.qwertyfinger.quotanoia.wear
 
 import android.content.Context
 import android.content.SharedPreferences
+import org.json.JSONArray
 
 /**
  * Local cache for usage data received from the phone via Data Layer.
@@ -48,21 +49,19 @@ class WearAccountStore(context: Context) {
         }
     }
 
-    fun updateFromDataMap(
-        count: Int,
-        getter: (key: String) -> Any?,
-    ) {
+    fun updateFromJson(arr: JSONArray) {
         prefs.edit().apply {
             clear()
-            putInt("count", count)
-            for (i in 0 until count) {
-                putString("${i}_id", getter("${i}_id") as? String ?: "")
-                putString("${i}_name", getter("${i}_name") as? String ?: "")
-                putBoolean("${i}_has_data", getter("${i}_has_data") as? Boolean ?: false)
-                putFloat("${i}_5h_pct", (getter("${i}_5h_pct") as? Float) ?: -1f)
-                putFloat("${i}_7d_pct", (getter("${i}_7d_pct") as? Float) ?: -1f)
-                putBoolean("${i}_has_error", getter("${i}_has_error") as? Boolean ?: false)
-                putString("${i}_error_msg", getter("${i}_error_msg") as? String ?: "")
+            putInt("count", arr.length())
+            for (i in 0 until arr.length()) {
+                val obj = arr.getJSONObject(i)
+                putString("${i}_id", obj.optString("id", ""))
+                putString("${i}_name", obj.optString("name", ""))
+                putBoolean("${i}_has_data", obj.optBoolean("has_data", false))
+                putFloat("${i}_5h_pct", obj.optDouble("5h_pct", -1.0).toFloat())
+                putFloat("${i}_7d_pct", obj.optDouble("7d_pct", -1.0).toFloat())
+                putBoolean("${i}_has_error", obj.optBoolean("has_error", false))
+                putString("${i}_error_msg", obj.optString("error_msg", ""))
             }
             apply()
         }

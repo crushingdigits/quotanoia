@@ -17,8 +17,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
-import com.google.android.gms.wearable.DataClient
-import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
@@ -32,10 +30,9 @@ class WearMainActivity : ComponentActivity() {
             val store = WearApp.instance.store
             var entries by remember { mutableStateOf(store.getAll()) }
 
-            // Pull existing data from Data Layer on launch + poll for updates
+            // Read cached data + poll for updates from MessageClient
             LaunchedEffect(Unit) {
                 logConnectedNodes()
-                pullDataFromPhone(store)
                 entries = store.getAll()
 
                 // Re-read store periodically in case DataLayerListenerService updates it
@@ -80,47 +77,6 @@ class WearMainActivity : ComponentActivity() {
                     }
                 }
             }
-        }
-    }
-
-    /** Actively pull existing data items from phone (don't just wait for push). */
-    private suspend fun pullDataFromPhone(store: WearAccountStore) {
-        try {
-            Log.d(TAG, "Pulling data from Data Layer...")
-            val dataClient: DataClient = Wearable.getDataClient(this)
-
-            // Get ALL data items and filter by path — URI with node ID varies
-            val dataItems = dataClient.dataItems.await()
-            Log.d(TAG, "Got ${dataItems.count} data items total")
-
-            var found = false
-            for (item in dataItems) {
-                Log.d(TAG, "Data item: uri=${item.uri}, path=${item.uri.path}")
-                if (item.uri.path == "/claude_usage") {
-                    found = true
-                    val dataMap = DataMapItem.fromDataItem(item).dataMap
-                    val count = dataMap.getInt("count", 0)
-                    Log.d(TAG, "Found usage data: $count accounts")
-
-                    store.updateFromDataMap(count) { key ->
-                        when {
-                            key.endsWith("_id") || key.endsWith("_name") || key.endsWith("_error_msg") ->
-                                dataMap.getString(key)
-                            key.endsWith("_pct") -> dataMap.getFloat(key)
-                            key.endsWith("_has_data") || key.endsWith("_has_error") ->
-                                dataMap.getBoolean(key)
-                            else -> null
-                        }
-                    }
-                }
-            }
-            dataItems.release()
-
-            if (!found) {
-                Log.d(TAG, "No usage data items found in Data Layer")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to pull data from phone", e)
         }
     }
 
