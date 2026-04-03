@@ -85,16 +85,21 @@ class WearMainActivity : ComponentActivity() {
     /** Actively pull existing data items from phone (don't just wait for push). */
     private suspend fun pullDataFromPhone(store: WearAccountStore) {
         try {
+            Log.d(TAG, "Pulling data from Data Layer...")
             val dataClient: DataClient = Wearable.getDataClient(this)
-            val dataItems = dataClient.getDataItems(
-                android.net.Uri.parse("wear:///claude_usage")
-            ).await()
 
+            // Get ALL data items and filter by path — URI with node ID varies
+            val dataItems = dataClient.dataItems.await()
+            Log.d(TAG, "Got ${dataItems.count} data items total")
+
+            var found = false
             for (item in dataItems) {
+                Log.d(TAG, "Data item: uri=${item.uri}, path=${item.uri.path}")
                 if (item.uri.path == "/claude_usage") {
+                    found = true
                     val dataMap = DataMapItem.fromDataItem(item).dataMap
                     val count = dataMap.getInt("count", 0)
-                    Log.d("WearMain", "Pulled $count accounts from Data Layer")
+                    Log.d(TAG, "Found usage data: $count accounts")
 
                     store.updateFromDataMap(count) { key ->
                         when {
@@ -109,9 +114,17 @@ class WearMainActivity : ComponentActivity() {
                 }
             }
             dataItems.release()
+
+            if (!found) {
+                Log.d(TAG, "No usage data items found in Data Layer")
+            }
         } catch (e: Exception) {
-            Log.w("WearMain", "Failed to pull data from phone", e)
+            Log.e(TAG, "Failed to pull data from phone", e)
         }
+    }
+
+    companion object {
+        private const val TAG = "WearMain"
     }
 }
 
