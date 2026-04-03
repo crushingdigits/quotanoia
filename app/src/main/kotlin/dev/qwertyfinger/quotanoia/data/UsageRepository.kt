@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import dev.qwertyfinger.quotanoia.sync.WearSyncManager
+import java.time.Instant
 import kotlin.math.min
 
 class UsageRepository(
@@ -48,6 +49,7 @@ class UsageRepository(
                         usage = usage,
                         error = null,
                         backoffMs = BASE_POLL_INTERVAL_MS,
+                        nextRetryAt = null,
                     )
                 },
                 onFailure = { throwable ->
@@ -62,7 +64,11 @@ class UsageRepository(
                         state.backoffMs
                     }
                     store.cacheError(account.id, error, newBackoff)
-                    state.copy(error = error, backoffMs = newBackoff)
+                    state.copy(
+                        error = error,
+                        backoffMs = newBackoff,
+                        nextRetryAt = Instant.now().plusMillis(newBackoff),
+                    )
                 }
             )
             if (index < current.size) current[index] = newState else current.add(newState)
@@ -89,7 +95,7 @@ class UsageRepository(
         val newState = result.fold(
             onSuccess = { usage ->
                 store.cacheUsage(accountId, usage)
-                state.copy(usage = usage, error = null, backoffMs = BASE_POLL_INTERVAL_MS)
+                state.copy(usage = usage, error = null, backoffMs = BASE_POLL_INTERVAL_MS, nextRetryAt = null)
             },
             onFailure = { throwable ->
                 val apiEx = throwable as? ApiClient.ApiException
@@ -103,7 +109,11 @@ class UsageRepository(
                     state.backoffMs
                 }
                 store.cacheError(accountId, error, newBackoff)
-                state.copy(error = error, backoffMs = newBackoff)
+                state.copy(
+                    error = error,
+                    backoffMs = newBackoff,
+                    nextRetryAt = Instant.now().plusMillis(newBackoff),
+                )
             }
         )
 

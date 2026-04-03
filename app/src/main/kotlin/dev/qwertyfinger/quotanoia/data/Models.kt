@@ -45,6 +45,7 @@ data class AccountState(
     val usage: UsageData? = null,
     val error: AccountError? = null,
     val backoffMs: Long = BASE_POLL_INTERVAL_MS,
+    val nextRetryAt: Instant? = null,
 ) {
     val hasError: Boolean get() = error != null
     val isStale: Boolean

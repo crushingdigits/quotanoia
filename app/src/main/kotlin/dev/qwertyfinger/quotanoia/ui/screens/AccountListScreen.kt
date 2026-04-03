@@ -1,8 +1,6 @@
 package dev.qwertyfinger.quotanoia.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,17 +14,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.qwertyfinger.quotanoia.data.AccountState
 import dev.qwertyfinger.quotanoia.ui.components.CircularUsageBar
+import kotlinx.coroutines.delay
 import java.time.Duration
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +34,15 @@ fun AccountListScreen(
     onRefresh: () -> Unit,
     isRefreshing: Boolean,
 ) {
+    // Tick every second for live countdowns
+    var now by remember { mutableStateOf(Instant.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1_000)
+            now = Instant.now()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -82,6 +87,7 @@ fun AccountListScreen(
                 items(states, key = { it.account.id }) { state ->
                     AccountCard(
                         state = state,
+                        now = now,
                         onEdit = { onEditAccount(state.account.id) },
                         onDelete = { onDeleteAccount(state.account.id) },
                     )
@@ -94,6 +100,7 @@ fun AccountListScreen(
 @Composable
 private fun AccountCard(
     state: AccountState,
+    now: Instant,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -164,13 +171,13 @@ private fun AccountCard(
 
                 Spacer(Modifier.height(8.dp))
 
-                // Reset times
+                // Reset times (live countdown)
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    ResetLabel("5h resets", state.usage.fiveHour.resetsAt)
-                    ResetLabel("7d resets", state.usage.sevenDay.resetsAt)
+                    ResetLabel("5h resets", state.usage.fiveHour.resetsAt, now)
+                    ResetLabel("7d resets", state.usage.sevenDay.resetsAt, now)
                 }
             } else if (!state.hasError) {
                 Text(
@@ -189,9 +196,15 @@ private fun AccountCard(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                 )
-                if (state.error.isTransient) {
+                if (state.error.isTransient && state.nextRetryAt != null) {
+                    val remaining = Duration.between(now, state.nextRetryAt)
+                    val retryText = if (remaining.isNegative) {
+                        "Retrying…"
+                    } else {
+                        "Next retry in ${formatDuration(remaining)}"
+                    }
                     Text(
-                        text = "Next retry in ${state.backoffMs / 1000}s",
+                        text = retryText,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp,
                     )
@@ -212,20 +225,25 @@ private fun AccountCard(
 }
 
 @Composable
-private fun ResetLabel(prefix: String, resetsAt: Instant) {
-    val now = Instant.now()
+private fun ResetLabel(prefix: String, resetsAt: Instant, now: Instant) {
     val duration = Duration.between(now, resetsAt)
-    val text = if (duration.isNegative) {
-        "resetting…"
-    } else {
-        val hours = duration.toHours()
-        val mins = duration.toMinutes() % 60
-        if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
-    }
+    val text = if (duration.isNegative) "resetting…" else formatDuration(duration)
 
     Text(
         text = "$prefix: $text",
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontSize = 11.sp,
     )
+}
+
+private fun formatDuration(d: Duration): String {
+    val totalSec = d.seconds
+    val hours = totalSec / 3600
+    val mins = (totalSec % 3600) / 60
+    val secs = totalSec % 60
+    return when {
+        hours > 0 -> "${hours}h ${mins}m ${secs}s"
+        mins > 0 -> "${mins}m ${secs}s"
+        else -> "${secs}s"
+    }
 }
