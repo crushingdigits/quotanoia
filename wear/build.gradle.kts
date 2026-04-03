@@ -44,8 +44,7 @@ dependencies {
     implementation(libs.wear.protolayout)
     implementation(libs.wear.protolayout.material)
     implementation(libs.wear.protolayout.expression)
-    implementation(libs.okhttp)
-    implementation(libs.security.crypto)
+    implementation(libs.play.services.wearable)
     implementation("com.google.guava:guava:33.3.1-android")
     implementation(libs.compose.material3)
 

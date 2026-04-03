@@ -5,11 +5,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import dev.claudewidget.sync.WearSyncManager
 import kotlin.math.min
 
 class UsageRepository(
     private val store: AccountStore,
     private val api: ApiClient = ApiClient(),
+    private val wearSync: WearSyncManager? = null,
 ) {
 
     private val _states = MutableStateFlow<List<AccountState>>(emptyList())
@@ -71,6 +73,7 @@ class UsageRepository(
         current.removeAll { it.account.id !in accountIds }
 
         _states.value = current
+        wearSync?.syncStates(current)
         current
     }
 
@@ -106,6 +109,7 @@ class UsageRepository(
 
         current[idx] = newState
         _states.value = current
+        wearSync?.syncStates(current)
         newState
     }
 
