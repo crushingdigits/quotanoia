@@ -6,7 +6,8 @@ import java.util.UUID
 data class ClaudeAccount(
     val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val token: String,
+    val sessionKey: String,
+    val orgId: String,
 )
 
 data class UsageWindow(
@@ -29,7 +30,7 @@ sealed class AccountError {
 
     val displayMessage: String
         get() = when (this) {
-            is TokenExpired -> "Token expired — re-enter in settings"
+            is TokenExpired -> "Session expired — re-enter in settings"
             is RateLimited -> "Rate limited — backing off"
             is ServerError -> "Server error ($code)"
             is NetworkError -> "Network: $message"

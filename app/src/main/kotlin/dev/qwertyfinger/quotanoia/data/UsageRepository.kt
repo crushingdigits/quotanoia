@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import dev.qwertyfinger.quotanoia.sync.WearSyncManager
+import timber.log.Timber
 import java.time.Instant
 import kotlin.math.min
 
@@ -40,13 +41,20 @@ class UsageRepository(
 
         for ((index, account) in accounts.withIndex()) {
             val state = current.getOrNull(index) ?: AccountState(account = account)
-            val result = api.fetchUsage(account.token)
+            val result = api.fetchUsage(account.sessionKey, account.orgId)
 
             val newState = result.fold(
-                onSuccess = { usage ->
-                    store.cacheUsage(account.id, usage)
+                onSuccess = { fetchResult ->
+                    // Rotate session key if the server issued a new one
+                    if (fetchResult.newSessionKey != null) {
+                        Timber.d("Rotating session key for account %s", account.name)
+                        store.updateAccount(account.copy(sessionKey = fetchResult.newSessionKey))
+                    }
+                    store.cacheUsage(account.id, fetchResult.usage)
                     state.copy(
-                        usage = usage,
+                        account = if (fetchResult.newSessionKey != null)
+                            account.copy(sessionKey = fetchResult.newSessionKey) else account,
+                        usage = fetchResult.usage,
                         error = null,
                         backoffMs = BASE_POLL_INTERVAL_MS,
                         nextRetryAt = null,
@@ -90,12 +98,24 @@ class UsageRepository(
         if (idx < 0) return@withContext null
 
         val state = current[idx]
-        val result = api.fetchUsage(state.account.token)
+        val account = state.account
+        val result = api.fetchUsage(account.sessionKey, account.orgId)
 
         val newState = result.fold(
-            onSuccess = { usage ->
-                store.cacheUsage(accountId, usage)
-                state.copy(usage = usage, error = null, backoffMs = BASE_POLL_INTERVAL_MS, nextRetryAt = null)
+            onSuccess = { fetchResult ->
+                if (fetchResult.newSessionKey != null) {
+                    Timber.d("Rotating session key for account %s", account.name)
+                    store.updateAccount(account.copy(sessionKey = fetchResult.newSessionKey))
+                }
+                store.cacheUsage(accountId, fetchResult.usage)
+                state.copy(
+                    account = if (fetchResult.newSessionKey != null)
+                        account.copy(sessionKey = fetchResult.newSessionKey) else account,
+                    usage = fetchResult.usage,
+                    error = null,
+                    backoffMs = BASE_POLL_INTERVAL_MS,
+                    nextRetryAt = null,
+                )
             },
             onFailure = { throwable ->
                 val apiEx = throwable as? ApiClient.ApiException
@@ -129,8 +149,8 @@ class UsageRepository(
 
     // ── Account management (delegates to store, refreshes states) ──
 
-    fun addAccount(name: String, token: String): ClaudeAccount {
-        val account = ClaudeAccount(name = name, token = token)
+    fun addAccount(name: String, sessionKey: String, orgId: String): ClaudeAccount {
+        val account = ClaudeAccount(name = name, sessionKey = sessionKey, orgId = orgId)
         store.addAccount(account)
         initialize()
         return account
@@ -141,8 +161,8 @@ class UsageRepository(
         initialize()
     }
 
-    fun updateAccount(id: String, name: String, token: String) {
-        store.updateAccount(ClaudeAccount(id = id, name = name, token = token))
+    fun updateAccount(id: String, name: String, sessionKey: String, orgId: String) {
+        store.updateAccount(ClaudeAccount(id = id, name = name, sessionKey = sessionKey, orgId = orgId))
         initialize()
     }
 }

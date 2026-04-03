@@ -32,13 +32,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun addAccount(name: String, token: String) {
-        repo.addAccount(name, token)
+    fun addAccount(name: String, sessionKey: String, orgId: String) {
+        repo.addAccount(name, sessionKey, orgId)
         refresh()
     }
 
-    fun updateAccount(id: String, name: String, token: String) {
-        repo.updateAccount(id, name, token)
+    fun updateAccount(id: String, name: String, sessionKey: String, orgId: String) {
+        repo.updateAccount(id, name, sessionKey, orgId)
         refresh()
     }
 

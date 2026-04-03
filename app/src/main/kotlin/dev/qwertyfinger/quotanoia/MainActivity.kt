@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.qwertyfinger.quotanoia.ui.screens.AccountFormData
 import dev.qwertyfinger.quotanoia.ui.screens.AccountListScreen
 import dev.qwertyfinger.quotanoia.ui.screens.AddAccountDialog
-import dev.qwertyfinger.quotanoia.ui.theme.ClaudeUsageTheme
+import dev.qwertyfinger.quotanoia.ui.theme.QuotanoiaTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,7 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            ClaudeUsageTheme {
+            QuotanoiaTheme {
                 val vm: MainViewModel = viewModel()
                 val states by vm.states.collectAsState()
                 val isRefreshing by vm.isRefreshing.collectAsState()
@@ -37,7 +37,8 @@ class MainActivity : ComponentActivity() {
                             editFormData = AccountFormData(
                                 id = state.account.id,
                                 name = state.account.name,
-                                token = state.account.token,
+                                sessionKey = state.account.sessionKey,
+                                orgId = state.account.orgId,
                             )
                             showDialog = true
                         }
@@ -54,12 +55,12 @@ class MainActivity : ComponentActivity() {
                             showDialog = false
                             editFormData = null
                         },
-                        onSave = { name, token ->
+                        onSave = { name, sessionKey, orgId ->
                             val form = editFormData!!
                             if (form.id != null) {
-                                vm.updateAccount(form.id, name, token)
+                                vm.updateAccount(form.id, name, sessionKey, orgId)
                             } else {
-                                vm.addAccount(name, token)
+                                vm.addAccount(name, sessionKey, orgId)
                             }
                             showDialog = false
                             editFormData = null
