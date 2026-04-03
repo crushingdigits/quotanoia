@@ -17,11 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
 
-/**
- * Minimal watch app — shows cached usage data.
- * In a full version, this would support account management
- * and sync via Wearable DataClient from the phone app.
- */
 class WearMainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +24,7 @@ class WearMainActivity : ComponentActivity() {
 
         setContent {
             val store = WearApp.instance.store
-            val accounts = remember { store.loadAccounts() }
+            val entries = remember { store.getAll() }
 
             Box(
                 modifier = Modifier
@@ -37,9 +32,9 @@ class WearMainActivity : ComponentActivity() {
                     .background(Color(0xFF0F0F1A)),
                 contentAlignment = Alignment.Center,
             ) {
-                if (accounts.isEmpty()) {
+                if (entries.isEmpty()) {
                     Text(
-                        text = "Add accounts\non phone app",
+                        text = "Open phone app\nto add accounts",
                         color = Color(0xFFAAAAAA),
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center,
@@ -59,9 +54,8 @@ class WearMainActivity : ComponentActivity() {
                             )
                             Spacer(Modifier.height(8.dp))
                         }
-                        items(accounts) { account ->
-                            val usage = store.getCachedUsage(account.id)
-                            WearAccountItem(account.name, usage)
+                        items(entries) { entry ->
+                            WearAccountItem(entry.account.name, entry.usage)
                             Spacer(Modifier.height(8.dp))
                         }
                     }

@@ -57,4 +57,5 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.workmanager)
     implementation(libs.security.crypto)
+    implementation(libs.play.services.wearable)
 }
