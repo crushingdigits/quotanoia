@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
  * Self-rescheduling worker that fetches usage for all accounts,
  * then enqueues itself with a delay based on the current backoff state.
  *
- * Base interval: 5 minutes. On 429/503 → exponential backoff up to 60 min.
+ * Base interval: 5 minutes. On 429/503 → exponential backoff up to 30 min (or server Retry-After if larger).
  * On success → reset to 5 min.
  */
 class UsageWorker(

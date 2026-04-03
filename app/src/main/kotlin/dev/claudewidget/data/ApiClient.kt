@@ -25,12 +25,15 @@ class ApiClient {
         return try {
             val response = client.newCall(request).execute()
             response.use { resp ->
+                val retryAfterMs = resp.header("Retry-After")?.toLongOrNull()
+                    ?.let { it * 1000L }
+
                 when (resp.code) {
                     200 -> parseUsage(resp.body?.string() ?: "")
                     401 -> Result.failure(ApiException(AccountError.TokenExpired))
-                    429 -> Result.failure(ApiException(AccountError.RateLimited))
+                    429 -> Result.failure(ApiException(AccountError.RateLimited, retryAfterMs))
                     in 500..599 -> Result.failure(
-                        ApiException(AccountError.ServerError(resp.code))
+                        ApiException(AccountError.ServerError(resp.code), retryAfterMs)
                     )
                     else -> Result.failure(
                         ApiException(AccountError.ServerError(resp.code))
@@ -65,7 +68,10 @@ class ApiClient {
         }
     }
 
-    class ApiException(val accountError: AccountError) : Exception(accountError.displayMessage)
+    class ApiException(
+        val accountError: AccountError,
+        val retryAfterMs: Long? = null,
+    ) : Exception(accountError.displayMessage)
 
     companion object {
         private const val USAGE_ENDPOINT = "https://api.anthropic.com/api/oauth/usage"
