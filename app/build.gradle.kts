@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.claudewidget"
+    namespace = "dev.qwertyfinger.quotanoia"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "dev.claudewidget"
+        applicationId = "dev.qwertyfinger.quotanoia"
         minSdk = 28
         targetSdk = 35
         versionCode = 1

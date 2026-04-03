@@ -15,6 +15,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ClaudeUsageWidget"
+rootProject.name = "Quotanoia"
 include(":app")
 include(":wear")

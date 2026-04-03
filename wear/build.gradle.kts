@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.claudewidget.wear"
+    namespace = "dev.qwertyfinger.quotanoia.wear"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "dev.claudewidget.wear"
+        applicationId = "dev.qwertyfinger.quotanoia.wear"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
