@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Claude Usage</string>
-    <string name="widget_name">Claude Usage</string>
+    <string name="app_name">quotanoia</string>
+    <string name="widget_name">quotanoia</string>
     <string name="widget_description">Shows Claude subscription usage for multiple accounts</string>
 </resources>
