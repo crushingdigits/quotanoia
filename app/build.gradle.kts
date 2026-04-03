@@ -34,6 +34,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -55,6 +56,8 @@ dependencies {
     implementation(libs.glance.material3)
 
     implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.timber)
     implementation(libs.workmanager)
     implementation(libs.security.crypto)
     implementation(libs.play.services.wearable)

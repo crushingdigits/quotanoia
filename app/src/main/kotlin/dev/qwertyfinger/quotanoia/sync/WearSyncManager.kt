@@ -1,8 +1,8 @@
 package dev.qwertyfinger.quotanoia.sync
 
 import android.content.Context
-import android.util.Log
 import com.google.android.gms.wearable.DataClient
+import timber.log.Timber
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import dev.qwertyfinger.quotanoia.data.AccountState
@@ -39,12 +39,11 @@ class WearSyncManager(context: Context) {
         request.setUrgent()
 
         dataClient.putDataItem(request.asPutDataRequest())
-            .addOnSuccessListener { Log.d(TAG, "Synced ${states.size} accounts to watch") }
-            .addOnFailureListener { Log.w(TAG, "Watch sync failed", it) }
+            .addOnSuccessListener { Timber.d("Synced %d accounts to watch", states.size) }
+            .addOnFailureListener { Timber.w(it, "Watch sync failed") }
     }
 
     companion object {
-        private const val TAG = "WearSync"
         const val PATH_USAGE = "/claude_usage"
     }
 }

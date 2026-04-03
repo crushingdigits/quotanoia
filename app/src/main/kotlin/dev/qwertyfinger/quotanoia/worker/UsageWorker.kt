@@ -1,8 +1,8 @@
 package dev.qwertyfinger.quotanoia.worker
 
 import android.content.Context
-import android.util.Log
 import androidx.work.*
+import timber.log.Timber
 import dev.qwertyfinger.quotanoia.QuotanoiaApp
 import dev.qwertyfinger.quotanoia.widget.UsageWidgetReceiver
 import kotlinx.coroutines.Dispatchers
@@ -34,17 +34,16 @@ class UsageWorker(
             val delay = app.repository.nextPollDelayMs()
             enqueueNext(applicationContext, delay)
 
-            Log.d(TAG, "Usage fetched. Next poll in ${delay / 1000}s")
+            Timber.d("Usage fetched. Next poll in %ds", delay / 1000)
             Result.success()
         } catch (e: Exception) {
-            Log.e(TAG, "Worker failed", e)
+            Timber.e(e, "Worker failed")
             enqueueNext(applicationContext) // retry at base interval
             Result.failure()
         }
     }
 
     companion object {
-        private const val TAG = "UsageWorker"
         private const val WORK_NAME = "claude_usage_poll"
 
         fun enqueueNext(context: Context, delayMs: Long = dev.qwertyfinger.quotanoia.data.BASE_POLL_INTERVAL_MS) {
