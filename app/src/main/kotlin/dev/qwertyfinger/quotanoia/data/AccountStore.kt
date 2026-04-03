@@ -39,7 +39,8 @@ class AccountStore(context: Context) {
                 ClaudeAccount(
                     id = obj.getString("id"),
                     name = obj.getString("name"),
-                    token = obj.getString("token"),
+                    sessionKey = obj.getString("sessionKey"),
+                    orgId = obj.getString("orgId"),
                 )
             }
         } catch (_: Exception) {
@@ -54,7 +55,8 @@ class AccountStore(context: Context) {
                 JSONObject().apply {
                     put("id", a.id)
                     put("name", a.name)
-                    put("token", a.token)
+                    put("sessionKey", a.sessionKey)
+                    put("orgId", a.orgId)
                 }
             )
         }

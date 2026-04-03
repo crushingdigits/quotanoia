@@ -9,17 +9,19 @@ import androidx.compose.ui.unit.dp
 data class AccountFormData(
     val id: String? = null,    // null for new account
     val name: String = "",
-    val token: String = "",
+    val sessionKey: String = "",
+    val orgId: String = "",
 )
 
 @Composable
 fun AddAccountDialog(
     initial: AccountFormData = AccountFormData(),
     onDismiss: () -> Unit,
-    onSave: (name: String, token: String) -> Unit,
+    onSave: (name: String, sessionKey: String, orgId: String) -> Unit,
 ) {
     var name by remember { mutableStateOf(initial.name) }
-    var token by remember { mutableStateOf(initial.token) }
+    var sessionKey by remember { mutableStateOf(initial.sessionKey) }
+    var orgId by remember { mutableStateOf(initial.orgId) }
 
     val isEdit = initial.id != null
     val title = if (isEdit) "Edit Account" else "Add Account"
@@ -39,18 +41,28 @@ fun AddAccountDialog(
                 )
 
                 OutlinedTextField(
-                    value = token,
-                    onValueChange = { token = it },
-                    label = { Text("OAuth token") },
-                    placeholder = { Text("Paste from ~/.claude/.credentials.json") },
+                    value = orgId,
+                    onValueChange = { orgId = it },
+                    label = { Text("Organization ID") },
+                    placeholder = { Text("From lastActiveOrg cookie") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                OutlinedTextField(
+                    value = sessionKey,
+                    onValueChange = { sessionKey = it },
+                    label = { Text("Session key") },
+                    placeholder = { Text("sk-ant-sid01-…") },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
                     maxLines = 5,
                 )
 
                 Text(
-                    text = "Find your token in ~/.claude/.credentials.json " +
-                        "→ claudeAiOauth → accessToken",
+                    text = "Browser DevTools → Application → Cookies → claude.ai\n" +
+                        "• sessionKey → paste above\n" +
+                        "• lastActiveOrg → Organization ID",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -58,8 +70,8 @@ fun AddAccountDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onSave(name.trim(), token.trim()) },
-                enabled = name.isNotBlank() && token.isNotBlank(),
+                onClick = { onSave(name.trim(), sessionKey.trim(), orgId.trim()) },
+                enabled = name.isNotBlank() && sessionKey.isNotBlank() && orgId.isNotBlank(),
             ) {
                 Text("Save")
             }

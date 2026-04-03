@@ -19,7 +19,7 @@ private val DarkColors = darkColorScheme(
 )
 
 @Composable
-fun ClaudeUsageTheme(content: @Composable () -> Unit) {
+fun QuotanoiaTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = DarkColors,
         content = content,
