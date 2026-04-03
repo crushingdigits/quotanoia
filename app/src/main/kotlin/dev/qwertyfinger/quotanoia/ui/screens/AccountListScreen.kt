@@ -238,10 +238,12 @@ private fun ResetLabel(prefix: String, resetsAt: Instant, now: Instant) {
 
 private fun formatDuration(d: Duration): String {
     val totalSec = d.seconds
-    val hours = totalSec / 3600
+    val days = totalSec / 86400
+    val hours = (totalSec % 86400) / 3600
     val mins = (totalSec % 3600) / 60
     val secs = totalSec % 60
     return when {
+        days > 0 -> "${days}d ${hours}h ${mins}m ${secs}s"
         hours > 0 -> "${hours}h ${mins}m ${secs}s"
         mins > 0 -> "${mins}m ${secs}s"
         else -> "${secs}s"

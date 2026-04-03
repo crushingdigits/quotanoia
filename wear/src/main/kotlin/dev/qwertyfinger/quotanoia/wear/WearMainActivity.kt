@@ -1,6 +1,7 @@
 package dev.qwertyfinger.quotanoia.wear
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -16,6 +17,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
+import com.google.android.gms.wearable.DataClient
+import com.google.android.gms.wearable.DataMapItem
+import com.google.android.gms.wearable.Wearable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.tasks.await
 
 class WearMainActivity : ComponentActivity() {
 
@@ -24,7 +30,19 @@ class WearMainActivity : ComponentActivity() {
 
         setContent {
             val store = WearApp.instance.store
-            val entries = remember { store.getAll() }
+            var entries by remember { mutableStateOf(store.getAll()) }
+
+            // Pull existing data from Data Layer on launch + poll for updates
+            LaunchedEffect(Unit) {
+                pullDataFromPhone(store)
+                entries = store.getAll()
+
+                // Re-read store periodically in case DataLayerListenerService updates it
+                while (true) {
+                    delay(3_000)
+                    entries = store.getAll()
+                }
+            }
 
             Box(
                 modifier = Modifier
@@ -61,6 +79,38 @@ class WearMainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    /** Actively pull existing data items from phone (don't just wait for push). */
+    private suspend fun pullDataFromPhone(store: WearAccountStore) {
+        try {
+            val dataClient: DataClient = Wearable.getDataClient(this)
+            val dataItems = dataClient.getDataItems(
+                android.net.Uri.parse("wear:///claude_usage")
+            ).await()
+
+            for (item in dataItems) {
+                if (item.uri.path == "/claude_usage") {
+                    val dataMap = DataMapItem.fromDataItem(item).dataMap
+                    val count = dataMap.getInt("count", 0)
+                    Log.d("WearMain", "Pulled $count accounts from Data Layer")
+
+                    store.updateFromDataMap(count) { key ->
+                        when {
+                            key.endsWith("_id") || key.endsWith("_name") || key.endsWith("_error_msg") ->
+                                dataMap.getString(key)
+                            key.endsWith("_pct") -> dataMap.getFloat(key)
+                            key.endsWith("_has_data") || key.endsWith("_has_error") ->
+                                dataMap.getBoolean(key)
+                            else -> null
+                        }
+                    }
+                }
+            }
+            dataItems.release()
+        } catch (e: Exception) {
+            Log.w("WearMain", "Failed to pull data from phone", e)
         }
     }
 }
