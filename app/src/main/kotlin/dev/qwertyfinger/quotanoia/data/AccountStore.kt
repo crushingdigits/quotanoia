@@ -88,9 +88,9 @@ class AccountStore(context: Context) {
     fun cacheUsage(accountId: String, usage: UsageData) {
         val obj = JSONObject().apply {
             put("fiveHourUtil", usage.fiveHour.utilization)
-            put("fiveHourResets", usage.fiveHour.resetsAt.toString())
+            put("fiveHourResets", usage.fiveHour.resetsAt?.toString() ?: JSONObject.NULL)
             put("sevenDayUtil", usage.sevenDay.utilization)
-            put("sevenDayResets", usage.sevenDay.resetsAt.toString())
+            put("sevenDayResets", usage.sevenDay.resetsAt?.toString() ?: JSONObject.NULL)
             put("fetchedAt", usage.fetchedAt.toString())
         }
         cachePrefs.edit()
@@ -114,11 +114,11 @@ class AccountStore(context: Context) {
             UsageData(
                 fiveHour = UsageWindow(
                     utilization = obj.getDouble("fiveHourUtil").toFloat(),
-                    resetsAt = java.time.Instant.parse(obj.getString("fiveHourResets")),
+                    resetsAt = obj.optString("fiveHourResets", "").takeIf { it.isNotEmpty() && it != "null" }?.let { java.time.Instant.parse(it) },
                 ),
                 sevenDay = UsageWindow(
                     utilization = obj.getDouble("sevenDayUtil").toFloat(),
-                    resetsAt = java.time.Instant.parse(obj.getString("sevenDayResets")),
+                    resetsAt = obj.optString("sevenDayResets", "").takeIf { it.isNotEmpty() && it != "null" }?.let { java.time.Instant.parse(it) },
                 ),
                 fetchedAt = java.time.Instant.parse(obj.getString("fetchedAt")),
             )

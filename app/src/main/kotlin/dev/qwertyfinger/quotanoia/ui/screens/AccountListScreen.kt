@@ -6,9 +6,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.qwertyfinger.quotanoia.data.AccountState
+import dev.qwertyfinger.quotanoia.notification.NotificationPrefsStore
 import dev.qwertyfinger.quotanoia.ui.components.CircularUsageBar
 import kotlinx.coroutines.delay
 import java.time.Duration
@@ -33,6 +37,8 @@ fun AccountListScreen(
     onDeleteAccount: (String) -> Unit,
     onRefresh: () -> Unit,
     isRefreshing: Boolean,
+    onShowHistory: () -> Unit = {},
+    notificationPrefs: NotificationPrefsStore? = null,
 ) {
     // Tick every second for live countdowns
     var now by remember { mutableStateOf(Instant.now()) }
@@ -48,6 +54,9 @@ fun AccountListScreen(
             TopAppBar(
                 title = { Text("quotanoia") },
                 actions = {
+                    IconButton(onClick = onShowHistory) {
+                        Icon(Icons.AutoMirrored.Filled.ShowChart, contentDescription = "History")
+                    }
                     IconButton(onClick = onRefresh, enabled = !isRefreshing) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
@@ -77,6 +86,11 @@ fun AccountListScreen(
                 )
             }
         } else {
+            val hasAnySuccessfulFetch = states.any { it.usage != null }
+            var hintDismissed by remember {
+                mutableStateOf(notificationPrefs?.isHintCardDismissed() ?: true)
+            }
+
             LazyColumn(
                 Modifier
                     .fillMaxSize()
@@ -84,6 +98,20 @@ fun AccountListScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                if (!hintDismissed && hasAnySuccessfulFetch && notificationPrefs != null) {
+                    item(key = "hint_card") {
+                        HintCard(
+                            onDismiss = {
+                                notificationPrefs.dismissHintCard()
+                                hintDismissed = true
+                            },
+                            onNavigate = {
+                                val first = states.firstOrNull()
+                                if (first != null) onEditAccount(first.account.id)
+                            },
+                        )
+                    }
+                }
                 items(states, key = { it.account.id }) { state ->
                     AccountCard(
                         state = state,
@@ -225,7 +253,8 @@ private fun AccountCard(
 }
 
 @Composable
-private fun ResetLabel(prefix: String, resetsAt: Instant, now: Instant) {
+private fun ResetLabel(prefix: String, resetsAt: Instant?, now: Instant) {
+    if (resetsAt == null) return
     val duration = Duration.between(now, resetsAt)
     val text = if (duration.isNegative) "resetting…" else formatDuration(duration)
 
@@ -247,5 +276,53 @@ private fun formatDuration(d: Duration): String {
         hours > 0 -> "${hours}h ${mins}m ${secs}s"
         mins > 0 -> "${mins}m ${secs}s"
         else -> "${secs}s"
+    }
+}
+
+@Composable
+private fun HintCard(
+    onDismiss: () -> Unit,
+    onNavigate: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.Notifications,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            TextButton(
+                onClick = onNavigate,
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(0.dp),
+            ) {
+                Text(
+                    "Get alerted when usage is high \u2192 Set up notifications",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Dismiss",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
     }
 }

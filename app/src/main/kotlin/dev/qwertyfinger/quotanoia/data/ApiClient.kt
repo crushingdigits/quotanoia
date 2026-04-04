@@ -90,11 +90,11 @@ class ApiClient {
             val data = UsageData(
                 fiveHour = UsageWindow(
                     utilization = fiveHour.getDouble("utilization").toFloat(),
-                    resetsAt = Instant.parse(fiveHour.getString("resets_at")),
+                    resetsAt = fiveHour.optString("resets_at", "").takeIf { it.isNotEmpty() && it != "null" }?.let { Instant.parse(it) },
                 ),
                 sevenDay = UsageWindow(
                     utilization = sevenDay.getDouble("utilization").toFloat(),
-                    resetsAt = Instant.parse(sevenDay.getString("resets_at")),
+                    resetsAt = sevenDay.optString("resets_at", "").takeIf { it.isNotEmpty() && it != "null" }?.let { Instant.parse(it) },
                 ),
             )
             Timber.d("Parsed usage: 5h=%.1f%%, 7d=%.1f%%", data.fiveHour.utilization, data.sevenDay.utilization)
