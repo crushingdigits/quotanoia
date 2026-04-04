@@ -1,5 +1,7 @@
 package dev.qwertyfinger.quotanoia.data
 
+import dev.qwertyfinger.quotanoia.data.history.UsageHistoryDao
+import dev.qwertyfinger.quotanoia.data.history.UsageRecord
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +16,7 @@ class UsageRepository(
     private val store: AccountStore,
     private val api: ApiClient = ApiClient(),
     private val wearSync: WearSyncManager? = null,
+    private val historyDao: UsageHistoryDao? = null,
 ) {
 
     private val _states = MutableStateFlow<List<AccountState>>(emptyList())
@@ -51,6 +54,11 @@ class UsageRepository(
                         store.updateAccount(account.copy(sessionKey = fetchResult.newSessionKey))
                     }
                     store.cacheUsage(account.id, fetchResult.usage)
+                    recordHistory(
+                        if (fetchResult.newSessionKey != null)
+                            account.copy(sessionKey = fetchResult.newSessionKey) else account,
+                        fetchResult.usage,
+                    )
                     state.copy(
                         account = if (fetchResult.newSessionKey != null)
                             account.copy(sessionKey = fetchResult.newSessionKey) else account,
@@ -108,6 +116,11 @@ class UsageRepository(
                     store.updateAccount(account.copy(sessionKey = fetchResult.newSessionKey))
                 }
                 store.cacheUsage(accountId, fetchResult.usage)
+                recordHistory(
+                    if (fetchResult.newSessionKey != null)
+                        account.copy(sessionKey = fetchResult.newSessionKey) else account,
+                    fetchResult.usage,
+                )
                 state.copy(
                     account = if (fetchResult.newSessionKey != null)
                         account.copy(sessionKey = fetchResult.newSessionKey) else account,
@@ -142,6 +155,26 @@ class UsageRepository(
         wearSync?.syncStates(current)
         newState
     }
+
+    /** Record a usage snapshot to the history database. */
+    private suspend fun recordHistory(account: ClaudeAccount, usage: UsageData) {
+        try {
+            historyDao?.insert(
+                UsageRecord(
+                    accountId = account.id,
+                    accountName = account.name,
+                    fiveHourUtilization = usage.fiveHour.utilization,
+                    sevenDayUtilization = usage.sevenDay.utilization,
+                    recordedAt = usage.fetchedAt.toEpochMilli(),
+                )
+            )
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to record usage history for %s", account.name)
+        }
+    }
+
+    /** Snapshot of current states for notification evaluation. */
+    fun currentStates(): List<AccountState> = _states.value
 
     /** Minimum delay until next poll (smallest backoff across all accounts). */
     fun nextPollDelayMs(): Long =

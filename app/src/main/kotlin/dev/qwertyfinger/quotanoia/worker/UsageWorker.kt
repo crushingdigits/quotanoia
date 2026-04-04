@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.work.*
 import timber.log.Timber
 import dev.qwertyfinger.quotanoia.QuotanoiaApp
+import dev.qwertyfinger.quotanoia.notification.NotificationEvaluator
+import dev.qwertyfinger.quotanoia.notification.NotificationPoster
 import dev.qwertyfinger.quotanoia.widget.UsageWidgetReceiver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,6 +31,14 @@ class UsageWorker(
 
             // Update widgets
             UsageWidgetReceiver.updateAll(applicationContext)
+
+            // Evaluate and post notifications
+            val notificationPrefs = app.notificationPrefs
+            val evaluator = NotificationEvaluator(notificationPrefs)
+            val poster = NotificationPoster(applicationContext)
+            val states = app.repository.currentStates()
+            val pending = evaluator.evaluate(states)
+            poster.post(pending)
 
             // Schedule next run based on backoff state
             val delay = app.repository.nextPollDelayMs()
