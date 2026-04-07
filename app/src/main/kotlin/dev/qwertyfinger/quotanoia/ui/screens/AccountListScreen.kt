@@ -225,7 +225,8 @@ private fun AccountCard(
 }
 
 @Composable
-private fun ResetLabel(prefix: String, resetsAt: Instant, now: Instant) {
+private fun ResetLabel(prefix: String, resetsAt: Instant?, now: Instant) {
+    if (resetsAt == null) return
     val duration = Duration.between(now, resetsAt)
     val text = if (duration.isNegative) "resetting…" else formatDuration(duration)
 

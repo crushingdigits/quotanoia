@@ -61,4 +61,7 @@ dependencies {
     implementation(libs.workmanager)
     implementation(libs.security.crypto)
     implementation(libs.play.services.wearable)
+
+    testImplementation(libs.junit)
+    testImplementation("org.json:json:20231013")
 }
