@@ -12,7 +12,7 @@ data class ClaudeAccount(
 
 data class UsageWindow(
     val utilization: Float, // 0..100
-    val resetsAt: Instant,
+    val resetsAt: Instant?, // null when window hasn't started (e.g. 5h at 0% usage)
 )
 
 data class UsageData(

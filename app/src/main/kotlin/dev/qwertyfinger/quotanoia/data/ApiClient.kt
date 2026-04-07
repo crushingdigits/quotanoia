@@ -84,18 +84,18 @@ class ApiClient {
     private fun parseUsage(body: String, newSessionKey: String?): Result<UsageFetchResult> {
         return try {
             val json = JSONObject(body)
-            val fiveHour = json.getJSONObject("five_hour")
-            val sevenDay = json.getJSONObject("seven_day")
+            val fiveHour = json.optJSONObject("five_hour")
+            val sevenDay = json.optJSONObject("seven_day")
+
+            if (fiveHour == null || sevenDay == null) {
+                return Result.failure(
+                    ApiException(AccountError.ParseError("Missing five_hour or seven_day in response"))
+                )
+            }
 
             val data = UsageData(
-                fiveHour = UsageWindow(
-                    utilization = fiveHour.getDouble("utilization").toFloat(),
-                    resetsAt = Instant.parse(fiveHour.getString("resets_at")),
-                ),
-                sevenDay = UsageWindow(
-                    utilization = sevenDay.getDouble("utilization").toFloat(),
-                    resetsAt = Instant.parse(sevenDay.getString("resets_at")),
-                ),
+                fiveHour = parseWindow(fiveHour, "five_hour"),
+                sevenDay = parseWindow(sevenDay, "seven_day"),
             )
             Timber.d("Parsed usage: 5h=%.1f%%, 7d=%.1f%%", data.fiveHour.utilization, data.sevenDay.utilization)
             if (newSessionKey != null) Timber.d("Session key rotated")
@@ -104,6 +104,20 @@ class ApiClient {
             Timber.e(e, "Failed to parse usage response")
             Result.failure(ApiException(AccountError.ParseError(e.message ?: "Parse failed")))
         }
+    }
+
+    internal fun parseWindow(obj: JSONObject, label: String): UsageWindow {
+        val utilization = obj.optDouble("utilization", 0.0).toFloat()
+        val resetsAtRaw = obj.optString("resets_at", "")
+        val resetsAt = resetsAtRaw
+            .takeIf { it.isNotEmpty() && it != "null" }
+            ?.let {
+                try { Instant.parse(it) } catch (e: Exception) {
+                    Timber.w("Unparseable resets_at in %s: %s", label, it)
+                    null
+                }
+            }
+        return UsageWindow(utilization, resetsAt)
     }
 
     /** Extract rotated sessionKey from Set-Cookie header if present. */
