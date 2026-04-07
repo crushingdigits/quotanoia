@@ -120,7 +120,9 @@ class AccountStore(context: Context) {
                     utilization = obj.optDouble("sevenDayUtil", 0.0).toFloat(),
                     resetsAt = obj.optString("sevenDayResets", "").takeIf { it.isNotEmpty() && it != "null" }?.let { java.time.Instant.parse(it) },
                 ),
-                fetchedAt = java.time.Instant.parse(obj.getString("fetchedAt")),
+                fetchedAt = obj.optString("fetchedAt", "").takeIf { it.isNotEmpty() }
+                    ?.let { try { java.time.Instant.parse(it) } catch (_: Exception) { null } }
+                    ?: return null,
             )
         } catch (_: Exception) {
             null

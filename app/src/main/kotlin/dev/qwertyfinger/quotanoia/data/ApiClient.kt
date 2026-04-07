@@ -106,7 +106,7 @@ class ApiClient {
         }
     }
 
-    private fun parseWindow(obj: JSONObject, label: String): UsageWindow {
+    internal fun parseWindow(obj: JSONObject, label: String): UsageWindow {
         val utilization = obj.optDouble("utilization", 0.0).toFloat()
         val resetsAtRaw = obj.optString("resets_at", "")
         val resetsAt = resetsAtRaw
