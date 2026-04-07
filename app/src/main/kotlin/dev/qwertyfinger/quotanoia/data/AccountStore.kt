@@ -107,6 +107,7 @@ class AccountStore(context: Context) {
             .apply()
     }
 
+    @Suppress("ReturnCount")
     fun getCachedUsage(accountId: String): UsageData? {
         val json = cachePrefs.getString("usage_$accountId", null) ?: return null
         return try {
@@ -114,11 +115,15 @@ class AccountStore(context: Context) {
             UsageData(
                 fiveHour = UsageWindow(
                     utilization = obj.optDouble("fiveHourUtil", 0.0).toFloat(),
-                    resetsAt = obj.optString("fiveHourResets", "").takeIf { it.isNotEmpty() && it != "null" }?.let { java.time.Instant.parse(it) },
+                    resetsAt = obj.optString("fiveHourResets", "")
+                        .takeIf { it.isNotEmpty() && it != "null" }
+                        ?.let { java.time.Instant.parse(it) },
                 ),
                 sevenDay = UsageWindow(
                     utilization = obj.optDouble("sevenDayUtil", 0.0).toFloat(),
-                    resetsAt = obj.optString("sevenDayResets", "").takeIf { it.isNotEmpty() && it != "null" }?.let { java.time.Instant.parse(it) },
+                    resetsAt = obj.optString("sevenDayResets", "")
+                        .takeIf { it.isNotEmpty() && it != "null" }
+                        ?.let { java.time.Instant.parse(it) },
                 ),
                 fetchedAt = obj.optString("fetchedAt", "").takeIf { it.isNotEmpty() }
                     ?.let { try { java.time.Instant.parse(it) } catch (_: Exception) { null } }

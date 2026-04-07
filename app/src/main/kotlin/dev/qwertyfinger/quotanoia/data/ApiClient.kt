@@ -5,6 +5,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONObject
+import androidx.annotation.VisibleForTesting
 import timber.log.Timber
 import java.io.IOException
 import java.time.Instant
@@ -81,7 +82,9 @@ class ApiClient {
         }
     }
 
-    private fun parseUsage(body: String, newSessionKey: String?): Result<UsageFetchResult> {
+    @Suppress("TooGenericExceptionCaught")
+    @VisibleForTesting
+    internal fun parseUsage(body: String, newSessionKey: String?): Result<UsageFetchResult> {
         return try {
             val json = JSONObject(body)
             val fiveHour = json.optJSONObject("five_hour")
@@ -106,6 +109,7 @@ class ApiClient {
         }
     }
 
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
     internal fun parseWindow(obj: JSONObject, label: String): UsageWindow {
         val utilization = obj.optDouble("utilization", 0.0).toFloat()
         val resetsAtRaw = obj.optString("resets_at", "")
