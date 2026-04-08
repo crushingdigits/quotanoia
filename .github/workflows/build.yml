@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-build-env
       - run: ./gradlew detektDebugSourceSet detektDebugUnitTestSourceSet
       - name: Upload report
@@ -31,7 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-build-env
       - run: ./gradlew :app:lintDebug :wear:lintDebug
       - name: Upload report
@@ -45,7 +43,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-build-env
       - run: ./gradlew testDebugUnitTest -PexcludeScreenshots
       - name: Upload report
@@ -59,10 +56,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-build-env
         with:
           lfs: true
-      - uses: ./.github/actions/setup-build-env
       - run: ./gradlew verifyRoborazziDebug
       - name: Upload captures
         if: always()
@@ -76,6 +72,5 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-build-env
       - run: ./gradlew assembleDebug

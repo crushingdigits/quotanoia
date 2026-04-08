@@ -17,12 +17,10 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-build-env
         with:
           ref: ${{ inputs.branch }}
           lfs: true
-
-      - uses: ./.github/actions/setup-build-env
 
       - name: Record screenshot baselines
         run: ./gradlew :app:recordRoborazziDebug
