@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 data class AccountFormData(
-    val id: String? = null,    // null for new account
+    val id: String? = null, // null for new account
     val name: String = "",
     val sessionKey: String = "",
     val orgId: String = "",
@@ -25,9 +25,9 @@ data class AccountFormData(
 
 @Composable
 fun AddAccountDialog(
-    initial: AccountFormData = AccountFormData(),
     onDismiss: () -> Unit,
     onSave: (name: String, sessionKey: String, orgId: String) -> Unit,
+    initial: AccountFormData = AccountFormData(),
 ) {
     var name by remember { mutableStateOf(initial.name) }
     var sessionKey by remember { mutableStateOf(initial.sessionKey) }

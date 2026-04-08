@@ -53,14 +53,13 @@ class MainActivity : ComponentActivity() {
                 )
 
                 if (showDialog && editFormData != null) {
+                    val form = requireNotNull(editFormData)
                     AddAccountDialog(
-                        initial = editFormData!!,
                         onDismiss = {
                             showDialog = false
                             editFormData = null
                         },
                         onSave = { name, sessionKey, orgId ->
-                            val form = editFormData!!
                             if (form.id != null) {
                                 vm.updateAccount(form.id, name, sessionKey, orgId)
                             } else {
@@ -69,6 +68,7 @@ class MainActivity : ComponentActivity() {
                             showDialog = false
                             editFormData = null
                         },
+                        initial = form,
                     )
                 }
             }

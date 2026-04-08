@@ -33,14 +33,17 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import dev.qwertyfinger.quotanoia.QuotanoiaApp
 import dev.qwertyfinger.quotanoia.MainActivity
+import dev.qwertyfinger.quotanoia.QuotanoiaApp
 import dev.qwertyfinger.quotanoia.data.AccountState
 import dev.qwertyfinger.quotanoia.ui.components.utilizationColor
 
 class UsageWidget : GlanceAppWidget() {
 
-    override suspend fun provideGlance(context: Context, id: GlanceId) {
+    override suspend fun provideGlance(
+        context: Context,
+        id: GlanceId,
+    ) {
         val app = QuotanoiaApp.instance
         app.repository.initialize()
         val states = app.repository.states.value
@@ -56,20 +59,39 @@ private val TEXT_COLOR = android.graphics.Color.parseColor("#E0E0E0")
 private val MUTED_COLOR = android.graphics.Color.parseColor("#AAAAAA")
 private val ERROR_COLOR = android.graphics.Color.parseColor("#E53935")
 
+private const val WIDGET_CORNER_RADIUS = 16
+private const val WIDGET_PADDING = 10
+private const val WIDGET_EMPTY_FONT_SIZE = 14
+private const val WIDGET_ACCOUNT_SPACING = 6
+private const val WIDGET_USAGE_SPACING = 4
+private const val WIDGET_USAGE_COL_SPACING = 12
+private const val WIDGET_BAR_SIZE = 44
+private const val WIDGET_ACCOUNT_NAME_FONT_SIZE = 13
+private const val WIDGET_ERROR_FONT_SIZE = 10
+private const val BITMAP_SIZE_PX = 80
+private const val BITMAP_STROKE_RATIO = 0.12f
+private const val BITMAP_PADDING_EXTRA = 2f
+private const val BITMAP_TEXT_SIZE_RATIO = 0.24f
+private const val BITMAP_TEXT_Y_RATIO = 0.35f
+private const val BITMAP_LABEL_SIZE_RATIO = 0.17f
+private const val BITMAP_LABEL_PADDING_OFFSET = 1f
+private val MUTED_TEXT_COLOR = android.graphics.Color.parseColor("#B0B0B0")
+
+@Suppress("UnstableCollections")
 @Composable
 private fun WidgetContent(states: List<AccountState>) {
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(BG_COLOR)
-            .cornerRadius(16.dp)
+            .cornerRadius(WIDGET_CORNER_RADIUS.dp)
             .clickable(actionStartActivity<MainActivity>())
-            .padding(10.dp),
+            .padding(WIDGET_PADDING.dp),
     ) {
         if (states.isEmpty()) {
             Text(
                 text = "Tap to add accounts",
-                style = TextStyle(color = ColorProvider(MUTED_COLOR), fontSize = 14.sp),
+                style = TextStyle(color = ColorProvider(MUTED_COLOR), fontSize = WIDGET_EMPTY_FONT_SIZE.sp),
             )
         } else {
             Column(
@@ -79,7 +101,7 @@ private fun WidgetContent(states: List<AccountState>) {
                 states.forEach { state ->
                     AccountRow(state)
                     if (state != states.last()) {
-                        Spacer(GlanceModifier.height(6.dp))
+                        Spacer(GlanceModifier.height(WIDGET_ACCOUNT_SPACING.dp))
                     }
                 }
             }
@@ -96,46 +118,54 @@ private fun AccountRow(state: AccountState) {
             text = state.account.name,
             style = TextStyle(
                 color = ColorProvider(if (hasError) ERROR_COLOR else TEXT_COLOR),
-                fontSize = 13.sp,
+                fontSize = WIDGET_ACCOUNT_NAME_FONT_SIZE.sp,
                 fontWeight = FontWeight.Bold,
             ),
         )
 
         if (state.usage != null) {
-            Spacer(GlanceModifier.height(4.dp))
+            Spacer(GlanceModifier.height(WIDGET_USAGE_SPACING.dp))
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 UsageBarWidget(state.usage.fiveHour.utilization, "5h")
-                Spacer(GlanceModifier.width(12.dp))
+                Spacer(GlanceModifier.width(WIDGET_USAGE_COL_SPACING.dp))
                 UsageBarWidget(state.usage.sevenDay.utilization, "7d")
             }
         } else if (hasError) {
             Text(
-                text = state.error!!.displayMessage,
-                style = TextStyle(color = ColorProvider(ERROR_COLOR), fontSize = 10.sp),
+                text = state.error?.displayMessage.orEmpty(),
+                style = TextStyle(color = ColorProvider(ERROR_COLOR), fontSize = WIDGET_ERROR_FONT_SIZE.sp),
             )
         }
     }
 }
 
 @Composable
-private fun UsageBarWidget(utilization: Float, label: String) {
-    val bitmap = renderCircularBarBitmap(utilization, label, 80)
+private fun UsageBarWidget(
+    utilization: Float,
+    label: String,
+) {
+    val bitmap = renderCircularBarBitmap(utilization, label, BITMAP_SIZE_PX)
     Image(
         provider = ImageProvider(bitmap),
         contentDescription = "$label: ${utilization.toInt()}%",
-        modifier = GlanceModifier.size(44.dp),
+        modifier = GlanceModifier.size(WIDGET_BAR_SIZE.dp),
     )
 }
 
-private fun renderCircularBarBitmap(utilization: Float, label: String, sizePx: Int): Bitmap {
+@Suppress("MagicNumber")
+private fun renderCircularBarBitmap(
+    utilization: Float,
+    label: String,
+    sizePx: Int,
+): Bitmap {
     val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
 
-    val strokeWidth = sizePx * 0.12f
-    val padding = strokeWidth / 2f + 2f
+    val strokeWidth = sizePx * BITMAP_STROKE_RATIO
+    val padding = strokeWidth / 2f + BITMAP_PADDING_EXTRA
     val rect = RectF(padding, padding, sizePx - padding, sizePx - padding)
 
     // Track
@@ -149,11 +179,12 @@ private fun renderCircularBarBitmap(utilization: Float, label: String, sizePx: I
 
     // Progress arc
     val composeColor = utilizationColor(utilization)
+    val colorMax = 255
     val arcColor = android.graphics.Color.argb(
-        (composeColor.alpha * 255).toInt(),
-        (composeColor.red * 255).toInt(),
-        (composeColor.green * 255).toInt(),
-        (composeColor.blue * 255).toInt(),
+        (composeColor.alpha * colorMax).toInt(),
+        (composeColor.red * colorMax).toInt(),
+        (composeColor.green * colorMax).toInt(),
+        (composeColor.blue * colorMax).toInt(),
     )
     val progressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = arcColor
@@ -169,19 +200,21 @@ private fun renderCircularBarBitmap(utilization: Float, label: String, sizePx: I
     // Percentage text
     val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = arcColor
-        textSize = sizePx * 0.24f
+        textSize = sizePx * BITMAP_TEXT_SIZE_RATIO
         textAlign = Paint.Align.CENTER
         isFakeBoldText = true
     }
-    canvas.drawText("${utilization.toInt()}%", sizePx / 2f, sizePx / 2f + textPaint.textSize * 0.35f, textPaint)
+    val textX = sizePx / 2f
+    val textY = sizePx / 2f + textPaint.textSize * BITMAP_TEXT_Y_RATIO
+    canvas.drawText("${utilization.toInt()}%", textX, textY, textPaint)
 
     // Label
     val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = android.graphics.Color.parseColor("#B0B0B0")
-        textSize = sizePx * 0.17f
+        color = MUTED_TEXT_COLOR
+        textSize = sizePx * BITMAP_LABEL_SIZE_RATIO
         textAlign = Paint.Align.CENTER
     }
-    canvas.drawText(label, sizePx / 2f, sizePx - padding - 1f, labelPaint)
+    canvas.drawText(label, sizePx / 2f, sizePx - padding - BITMAP_LABEL_PADDING_OFFSET, labelPaint)
 
     return bitmap
 }

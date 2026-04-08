@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-build-env
-      - run: ./gradlew detektDebugSourceSet detektDebugUnitTestSourceSet
+      - run: ./gradlew detektDebug detektDebugUnitTest
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4

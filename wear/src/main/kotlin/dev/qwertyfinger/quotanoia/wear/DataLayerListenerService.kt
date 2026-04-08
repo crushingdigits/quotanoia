@@ -28,7 +28,8 @@ class DataLayerListenerService : WearableListenerService() {
 
             // Request tile update
             try {
-                val updater = androidx.wear.tiles.TileService.getUpdater(this)
+                val updater = androidx.wear.tiles.TileService
+                    .getUpdater(this)
                 updater.requestUpdate(UsageTileService::class.java)
             } catch (e: Exception) {
                 Log.w(TAG, "Could not request tile update", e)

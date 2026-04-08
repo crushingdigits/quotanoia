@@ -12,7 +12,8 @@ import org.json.JSONObject
  */
 class AccountStore(context: Context) {
 
-    private val masterKey = MasterKey.Builder(context)
+    private val masterKey = MasterKey
+        .Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
 
@@ -57,7 +58,7 @@ class AccountStore(context: Context) {
                     put("name", a.name)
                     put("sessionKey", a.sessionKey)
                     put("orgId", a.orgId)
-                }
+                },
             )
         }
         securePrefs.edit().putString(KEY_ACCOUNTS, arr.toString()).apply()
@@ -85,7 +86,10 @@ class AccountStore(context: Context) {
 
     // ── Usage cache ─────────────────────────────────────────
 
-    fun cacheUsage(accountId: String, usage: UsageData) {
+    fun cacheUsage(
+        accountId: String,
+        usage: UsageData,
+    ) {
         val obj = JSONObject().apply {
             put("fiveHourUtil", usage.fiveHour.utilization)
             put("fiveHourResets", usage.fiveHour.resetsAt?.toString() ?: JSONObject.NULL)
@@ -93,15 +97,21 @@ class AccountStore(context: Context) {
             put("sevenDayResets", usage.sevenDay.resetsAt?.toString() ?: JSONObject.NULL)
             put("fetchedAt", usage.fetchedAt.toString())
         }
-        cachePrefs.edit()
+        cachePrefs
+            .edit()
             .putString("usage_$accountId", obj.toString())
             .remove("error_$accountId")
             .putLong("backoff_$accountId", BASE_POLL_INTERVAL_MS)
             .apply()
     }
 
-    fun cacheError(accountId: String, error: AccountError, backoffMs: Long) {
-        cachePrefs.edit()
+    fun cacheError(
+        accountId: String,
+        error: AccountError,
+        backoffMs: Long,
+    ) {
+        cachePrefs
+            .edit()
             .putString("error_$accountId", error.displayMessage)
             .putLong("backoff_$accountId", backoffMs)
             .apply()
@@ -115,18 +125,28 @@ class AccountStore(context: Context) {
             UsageData(
                 fiveHour = UsageWindow(
                     utilization = obj.optDouble("fiveHourUtil", 0.0).toFloat(),
-                    resetsAt = obj.optString("fiveHourResets", "")
+                    resetsAt = obj
+                        .optString("fiveHourResets", "")
                         .takeIf { it.isNotEmpty() && it != "null" }
                         ?.let { java.time.Instant.parse(it) },
                 ),
                 sevenDay = UsageWindow(
                     utilization = obj.optDouble("sevenDayUtil", 0.0).toFloat(),
-                    resetsAt = obj.optString("sevenDayResets", "")
+                    resetsAt = obj
+                        .optString("sevenDayResets", "")
                         .takeIf { it.isNotEmpty() && it != "null" }
                         ?.let { java.time.Instant.parse(it) },
                 ),
-                fetchedAt = obj.optString("fetchedAt", "").takeIf { it.isNotEmpty() }
-                    ?.let { try { java.time.Instant.parse(it) } catch (_: Exception) { null } }
+                fetchedAt = obj
+                    .optString("fetchedAt", "")
+                    .takeIf { it.isNotEmpty() }
+                    ?.let {
+                        try {
+                            java.time.Instant.parse(it)
+                        } catch (_: Exception) {
+                            null
+                        }
+                    }
                     ?: return null,
             )
         } catch (_: Exception) {
@@ -134,14 +154,13 @@ class AccountStore(context: Context) {
         }
     }
 
-    fun getCachedError(accountId: String): String? =
-        cachePrefs.getString("error_$accountId", null)
+    fun getCachedError(accountId: String): String? = cachePrefs.getString("error_$accountId", null)
 
-    fun getBackoff(accountId: String): Long =
-        cachePrefs.getLong("backoff_$accountId", BASE_POLL_INTERVAL_MS)
+    fun getBackoff(accountId: String): Long = cachePrefs.getLong("backoff_$accountId", BASE_POLL_INTERVAL_MS)
 
     private fun clearCachedState(accountId: String) {
-        cachePrefs.edit()
+        cachePrefs
+            .edit()
             .remove("usage_$accountId")
             .remove("error_$accountId")
             .remove("backoff_$accountId")

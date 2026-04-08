@@ -1,42 +1,44 @@
 package dev.qwertyfinger.quotanoia.data
 
+import androidx.annotation.VisibleForTesting
 import dev.qwertyfinger.quotanoia.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONObject
-import androidx.annotation.VisibleForTesting
 import timber.log.Timber
 import java.io.IOException
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 /** Result of a usage fetch — includes an optional rotated session key. */
-data class UsageFetchResult(
-    val usage: UsageData,
-    val newSessionKey: String? = null,
-)
+data class UsageFetchResult(val usage: UsageData, val newSessionKey: String? = null)
 
 class ApiClient {
 
-    private val client: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.SECONDS)
+    private val client: OkHttpClient = OkHttpClient
+        .Builder()
+        .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .addInterceptor(
             HttpLoggingInterceptor { message -> Timber.tag("OkHttp").d(message) }.apply {
-                level = if (BuildConfig.DEBUG)
+                level = if (BuildConfig.DEBUG) {
                     HttpLoggingInterceptor.Level.BODY
-                else
+                } else {
                     HttpLoggingInterceptor.Level.NONE
-            }
-        )
-        .build()
+                }
+            },
+        ).build()
 
-    fun fetchUsage(sessionKey: String, orgId: String): Result<UsageFetchResult> {
+    fun fetchUsage(
+        sessionKey: String,
+        orgId: String,
+    ): Result<UsageFetchResult> {
         Timber.d("Fetching usage for org %s", orgId)
 
         val url = "$BASE_URL/$orgId/usage"
-        val request = Request.Builder()
+        val request = Request
+            .Builder()
             .url(url)
             .header("accept", "*/*")
             .header("content-type", "application/json")
@@ -48,28 +50,34 @@ class ApiClient {
         return try {
             val response = client.newCall(request).execute()
             response.use { resp ->
-                val retryAfterMs = resp.header("Retry-After")?.toLongOrNull()
-                    ?.let { it * 1000L }
+                val retryAfterMs = resp
+                    .header("Retry-After")
+                    ?.toLongOrNull()
+                    ?.let { it * MILLIS_PER_SECOND }
 
                 Timber.d("Response: %d for org %s", resp.code, orgId)
 
                 when (resp.code) {
-                    200 -> {
+                    HTTP_OK -> {
                         val newKey = parseSetCookieSessionKey(resp)
-                        parseUsage(resp.body?.string() ?: "", newKey)
+                        parseUsage(resp.body?.string().orEmpty(), newKey)
                     }
-                    401, 403 -> {
+
+                    HTTP_UNAUTHORIZED, HTTP_FORBIDDEN -> {
                         Timber.w("Session expired (%d) for org %s", resp.code, orgId)
                         Result.failure(ApiException(AccountError.TokenExpired))
                     }
-                    429 -> {
+
+                    HTTP_TOO_MANY_REQUESTS -> {
                         Timber.w("Rate limited (429), retry-after: %s ms", retryAfterMs)
                         Result.failure(ApiException(AccountError.RateLimited, retryAfterMs))
                     }
-                    in 500..599 -> {
+
+                    in HTTP_SERVER_ERROR_MIN..HTTP_SERVER_ERROR_MAX -> {
                         Timber.w("Server error (%d), retry-after: %s ms", resp.code, retryAfterMs)
                         Result.failure(ApiException(AccountError.ServerError(resp.code), retryAfterMs))
                     }
+
                     else -> {
                         Timber.w("Unexpected status %d", resp.code)
                         Result.failure(ApiException(AccountError.ServerError(resp.code)))
@@ -84,7 +92,10 @@ class ApiClient {
 
     @Suppress("TooGenericExceptionCaught")
     @VisibleForTesting
-    internal fun parseUsage(body: String, newSessionKey: String?): Result<UsageFetchResult> {
+    internal fun parseUsage(
+        body: String,
+        newSessionKey: String?,
+    ): Result<UsageFetchResult> {
         return try {
             val json = JSONObject(body)
             val fiveHour = json.optJSONObject("five_hour")
@@ -92,7 +103,7 @@ class ApiClient {
 
             if (fiveHour == null || sevenDay == null) {
                 return Result.failure(
-                    ApiException(AccountError.ParseError("Missing five_hour or seven_day in response"))
+                    ApiException(AccountError.ParseError("Missing five_hour or seven_day in response")),
                 )
             }
 
@@ -110,13 +121,18 @@ class ApiClient {
     }
 
     @Suppress("TooGenericExceptionCaught", "SwallowedException")
-    internal fun parseWindow(obj: JSONObject, label: String): UsageWindow {
+    internal fun parseWindow(
+        obj: JSONObject,
+        label: String,
+    ): UsageWindow {
         val utilization = obj.optDouble("utilization", 0.0).toFloat()
         val resetsAtRaw = obj.optString("resets_at", "")
         val resetsAt = resetsAtRaw
             .takeIf { it.isNotEmpty() && it != "null" }
             ?.let {
-                try { Instant.parse(it) } catch (e: Exception) {
+                try {
+                    Instant.parse(it)
+                } catch (e: Exception) {
                     Timber.w("Unparseable resets_at in %s: %s", label, it)
                     null
                 }
@@ -138,12 +154,18 @@ class ApiClient {
         return null
     }
 
-    class ApiException(
-        val accountError: AccountError,
-        val retryAfterMs: Long? = null,
-    ) : Exception(accountError.displayMessage)
+    class ApiException(val accountError: AccountError, val retryAfterMs: Long? = null) :
+        Exception(accountError.displayMessage)
 
     companion object {
         private const val BASE_URL = "https://claude.ai/api/organizations"
+        private const val TIMEOUT_SECONDS = 15L
+        private const val MILLIS_PER_SECOND = 1000L
+        private const val HTTP_OK = 200
+        private const val HTTP_UNAUTHORIZED = 401
+        private const val HTTP_FORBIDDEN = 403
+        private const val HTTP_TOO_MANY_REQUESTS = 429
+        private const val HTTP_SERVER_ERROR_MIN = 500
+        private const val HTTP_SERVER_ERROR_MAX = 599
     }
 }

@@ -49,8 +49,28 @@ import kotlinx.coroutines.delay
 import java.time.Duration
 import java.time.Instant
 
+private const val COUNTDOWN_TICK_MS = 1_000L
+private const val FONT_SIZE_EMPTY_STATE = 16
+private const val CONTENT_PADDING = 16
+private const val CARD_SPACING = 12
+private const val ERROR_COLOR = 0xFFE53935L
+private const val STALE_COLOR = 0xFFFFCA28L
+private const val CARD_CORNER_RADIUS = 16
+private const val ERROR_BORDER_WIDTH = 2
+private const val CARD_INNER_PADDING = 16
+private const val FONT_SIZE_ACCOUNT_NAME = 18
+private const val ICON_BUTTON_SIZE = 32
+private const val ICON_SIZE = 18
+private const val SPACER_MEDIUM = 12
+private const val USAGE_BAR_SIZE = 90
+private const val USAGE_BAR_STROKE = 10
+private const val SPACER_SMALL = 8
+private const val FONT_SIZE_SECONDARY = 13
+private const val FONT_SIZE_SMALL = 11
+private const val SPACER_XSMALL = 4
+
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("LongMethod")
+@Suppress("LongMethod", "UnstableCollections")
 @Composable
 fun AccountListScreen(
     states: List<AccountState>,
@@ -59,17 +79,19 @@ fun AccountListScreen(
     onDeleteAccount: (String) -> Unit,
     onRefresh: () -> Unit,
     isRefreshing: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     // Tick every second for live countdowns
     var now by remember { mutableStateOf(Instant.now()) }
     LaunchedEffect(Unit) {
         while (true) {
-            delay(1_000)
+            delay(COUNTDOWN_TICK_MS)
             now = Instant.now()
         }
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text("quotanoia") },
@@ -99,7 +121,7 @@ fun AccountListScreen(
                 Text(
                     "No accounts yet.\nTap + to add your Claude account.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 16.sp,
+                    fontSize = FONT_SIZE_EMPTY_STATE.sp,
                 )
             }
         } else {
@@ -107,8 +129,8 @@ fun AccountListScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(CONTENT_PADDING.dp),
+                verticalArrangement = Arrangement.spacedBy(CARD_SPACING.dp),
             ) {
                 items(states, key = { it.account.id }) { state ->
                     AccountCard(
@@ -131,17 +153,17 @@ private fun AccountCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val borderColor = if (state.hasError) Color(0xFFE53935) else Color.Transparent
-    val shape = RoundedCornerShape(16.dp)
+    val borderColor = if (state.hasError) Color(ERROR_COLOR) else Color.Transparent
+    val shape = RoundedCornerShape(CARD_CORNER_RADIUS.dp)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .border(width = if (state.hasError) 2.dp else 0.dp, color = borderColor, shape = shape),
+            .border(width = if (state.hasError) ERROR_BORDER_WIDTH.dp else 0.dp, color = borderColor, shape = shape),
         shape = shape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.padding(CARD_INNER_PADDING.dp)) {
             // Header row
             Row(
                 Modifier.fillMaxWidth(),
@@ -151,30 +173,30 @@ private fun AccountCard(
                 Text(
                     text = state.account.name,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
+                    fontSize = FONT_SIZE_ACCOUNT_NAME.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Row {
-                    IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = onEdit, modifier = Modifier.size(ICON_BUTTON_SIZE.dp)) {
                         Icon(
                             Icons.Default.Edit,
                             contentDescription = "Edit",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(ICON_SIZE.dp),
                         )
                     }
-                    IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = onDelete, modifier = Modifier.size(ICON_BUTTON_SIZE.dp)) {
                         Icon(
                             Icons.Default.Delete,
                             contentDescription = "Delete",
                             tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(ICON_SIZE.dp),
                         )
                     }
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(SPACER_MEDIUM.dp))
 
             // Usage bars
             if (state.usage != null) {
@@ -185,18 +207,18 @@ private fun AccountCard(
                     CircularUsageBar(
                         utilization = state.usage.fiveHour.utilization,
                         label = "5h",
-                        size = 90.dp,
-                        strokeWidth = 10.dp,
+                        size = USAGE_BAR_SIZE.dp,
+                        strokeWidth = USAGE_BAR_STROKE.dp,
                     )
                     CircularUsageBar(
                         utilization = state.usage.sevenDay.utilization,
                         label = "7d",
-                        size = 90.dp,
-                        strokeWidth = 10.dp,
+                        size = USAGE_BAR_SIZE.dp,
+                        strokeWidth = USAGE_BAR_STROKE.dp,
                     )
                 }
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(SPACER_SMALL.dp))
 
                 // Reset times (live countdown)
                 Row(
@@ -210,20 +232,20 @@ private fun AccountCard(
                 Text(
                     "No data yet — will fetch shortly",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 13.sp,
+                    fontSize = FONT_SIZE_SECONDARY.sp,
                 )
             }
 
             // Error display
             if (state.hasError) {
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(SPACER_SMALL.dp))
                 Text(
-                    text = state.error!!.displayMessage,
+                    text = state.error?.displayMessage.orEmpty(),
                     color = MaterialTheme.colorScheme.error,
-                    fontSize = 13.sp,
+                    fontSize = FONT_SIZE_SECONDARY.sp,
                     fontWeight = FontWeight.Medium,
                 )
-                if (state.error.isTransient && state.nextRetryAt != null) {
+                if (state.error?.isTransient == true && state.nextRetryAt != null) {
                     val remaining = Duration.between(now, state.nextRetryAt)
                     val retryText = if (remaining.isNegative) {
                         "Retrying…"
@@ -233,18 +255,18 @@ private fun AccountCard(
                     Text(
                         text = retryText,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 11.sp,
+                        fontSize = FONT_SIZE_SMALL.sp,
                     )
                 }
             }
 
             // Stale indicator
             if (state.isStale && !state.hasError) {
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(SPACER_XSMALL.dp))
                 Text(
                     text = "Data may be stale",
-                    color = Color(0xFFFFCA28),
-                    fontSize = 11.sp,
+                    color = Color(STALE_COLOR),
+                    fontSize = FONT_SIZE_SMALL.sp,
                 )
             }
         }
@@ -252,7 +274,11 @@ private fun AccountCard(
 }
 
 @Composable
-private fun ResetLabel(prefix: String, resetsAt: Instant?, now: Instant) {
+private fun ResetLabel(
+    prefix: String,
+    resetsAt: Instant?,
+    now: Instant,
+) {
     if (resetsAt == null) return
     val duration = Duration.between(now, resetsAt)
     val text = if (duration.isNegative) "resetting…" else formatDuration(duration)
@@ -264,12 +290,16 @@ private fun ResetLabel(prefix: String, resetsAt: Instant?, now: Instant) {
     )
 }
 
+private const val SECONDS_PER_DAY = 86400L
+private const val SECONDS_PER_HOUR = 3600L
+private const val SECONDS_PER_MINUTE = 60L
+
 private fun formatDuration(d: Duration): String {
     val totalSec = d.seconds
-    val days = totalSec / 86400
-    val hours = (totalSec % 86400) / 3600
-    val mins = (totalSec % 3600) / 60
-    val secs = totalSec % 60
+    val days = totalSec / SECONDS_PER_DAY
+    val hours = totalSec % SECONDS_PER_DAY / SECONDS_PER_HOUR
+    val mins = totalSec % SECONDS_PER_HOUR / SECONDS_PER_MINUTE
+    val secs = totalSec % SECONDS_PER_MINUTE
     return when {
         days > 0 -> "${days}d ${hours}h ${mins}m ${secs}s"
         hours > 0 -> "${hours}h ${mins}m ${secs}s"
