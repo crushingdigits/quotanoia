@@ -21,7 +21,7 @@ internal fun Project.configureScreenshotTests() {
             includePrivatePreviews.set(false)
             packages.set(listOf("dev.qwertyfinger"))
             androidComponents?.finalizeDsl {
-                if (it !is CommonExtension<*, *, *, *, *, *>) return@finalizeDsl
+                if (it !is CommonExtension) return@finalizeDsl
                 it.namespace?.let { namespace ->
                     packages.set(listOf("$namespace."))
                 }

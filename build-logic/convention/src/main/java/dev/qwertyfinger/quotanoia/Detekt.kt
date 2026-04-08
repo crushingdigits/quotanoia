@@ -25,11 +25,11 @@ internal fun Project.configureDetekt() {
             "Custom Detekt config not found at ${customConfig.absolutePath}. " +
                 "Expected ../config/detekt/detekt-overrides.yml next to the included build-logic."
         }
-        buildUponDefaultConfig = true
-        basePath = rootProject.layout.projectDirectory.asFile
+        buildUponDefaultConfig.set(true)
+        basePath.set(rootProject.layout.projectDirectory.asFile)
         config.setFrom(customConfig)
-        parallel = true
-        ignoredBuildTypes = listOf("release")
+        parallel.set(true)
+        ignoredBuildTypes.set(listOf("release"))
     }
 
     tasks.withType<Detekt>().configureEach {

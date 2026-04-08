@@ -20,17 +20,17 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             apply(plugin = libs.findPlugin("android.library").id)
-            apply(plugin = libs.findPlugin("kotlin.android").id)
             apply(plugin = libs.findPlugin("ksp").id)
+
+            configureHilt()
+            configureDetekt()
+            configureLint()
+            configureTimber()
 
             extensions.configure<LibraryExtension> {
                 configureAndroid(this)
                 configureAndroidTests(this)
-                configureDetekt()
-                configureHilt()
                 configureKotlinAndroid(this)
-                configureLint()
-                configureTimber()
                 configureUnitTests(this)
 
                 buildTypes {

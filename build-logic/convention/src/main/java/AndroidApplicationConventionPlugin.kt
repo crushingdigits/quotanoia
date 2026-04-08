@@ -21,21 +21,21 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             apply(plugin = libs.findPlugin("android.application").id)
-            apply(plugin = libs.findPlugin("kotlin.android").id)
             apply(plugin = libs.findPlugin("kotlin.serialization").id)
             apply(plugin = libs.findPlugin("ksp").id)
+
+            configureHilt()
+            configureDetekt()
+            configureLint()
+            configureTimber()
+            configureScreenshotTests()
+            configureComposeUiTests()
 
             extensions.configure<ApplicationExtension> {
                 configureAndroid(this)
                 configureAndroidTests(this)
                 configureCompose(this)
-                configureComposeUiTests()
-                configureDetekt()
-                configureHilt()
                 configureKotlinAndroid(this)
-                configureLint()
-                configureTimber()
-                configureScreenshotTests()
                 configureUnitTests(this)
 
                 buildFeatures {

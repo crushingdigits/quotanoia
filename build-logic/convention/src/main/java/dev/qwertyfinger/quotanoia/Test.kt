@@ -8,11 +8,9 @@ import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.withType
 
 internal fun Project.configureAndroidTests(
-    commonExtension: CommonExtension<*, *, *, *, *, *>,
+    commonExtension: CommonExtension,
 ) {
-    commonExtension.testOptions {
-        animationsDisabled = true
-    }
+    commonExtension.testOptions.animationsDisabled = true
 
     dependencies {
         "androidTestImplementation"(libs.findBundle("android.test").get())
@@ -30,15 +28,13 @@ internal fun Project.configureComposeUiTests() {
 }
 
 internal fun Project.configureUnitTests(
-    commonExtension: CommonExtension<*, *, *, *, *, *>? = null,
+    commonExtension: CommonExtension? = null,
 ) {
-    commonExtension?.testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-            isReturnDefaultValues = true
-            all {
-                it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
-            }
+    commonExtension?.testOptions?.unitTests?.apply {
+        isIncludeAndroidResources = true
+        isReturnDefaultValues = true
+        all {
+            it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
         }
     }
 
@@ -48,7 +44,7 @@ internal fun Project.configureUnitTests(
     }
 
     tasks.withType<Test> {
-        failOnNoDiscoveredTests = false
+        failOnNoDiscoveredTests.set(false)
     }
 }
 
