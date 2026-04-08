@@ -1,11 +1,10 @@
 [versions]
-agp = "9.1.0"
-kotlin = "2.3.20"
 compileSdk = "36"
 targetSdk = "36"
 buildToolsVersion = "36.0.0"
 
-# AndroidX
+agp = "9.1.0"
+androidTools = "32.1.0"
 androidxActivityCompose = "1.9.3"
 androidxConcurrentFutures = "1.3.0"
 androidxCoreKtx = "1.15.0"
@@ -15,53 +14,47 @@ androidxLintGradle = "1.0.0-alpha05"
 androidxNavigationCompose = "2.8.5"
 androidxTest = "1.7.0"
 androidxTestJunit = "1.3.0"
-
-# Compose (BOM-managed, individual libs don't need versions)
+composablePreviewScanner = "0.8.2"
 composeBom = "2026.03.01"
-
-# Build
-androidTools = "32.1.0"
-ksp = "2.3.4"
-
-# DI
 dagger = "2.59.2"
-hiltAndroid = "1.3.0"
-
-# Quality
 detekt = "2.0.0-alpha.2"
 detektComposeRules = "0.5.6"
-
-# Networking
-okhttp = "4.12.0"
-
-# Testing
 espresso = "3.7.0"
+glance = "1.1.1"
+hiltAndroid = "1.3.0"
 junit = "4.13.2"
+kotlin = "2.3.20"
 kotlinxCoroutines = "1.9.0"
+kotlinxSerialization = "1.10.0"
+ksp = "2.3.4"
 mockk = "1.14.9"
-composablePreviewScanner = "0.8.2"
+okhttp = "4.12.0"
+playServicesWearable = "19.0.0"
 roborazzi = "1.59.0"
 robolectric = "4.14.1"
-truth = "1.4.5"
-turbine = "1.2.1"
-
-# UI
-glance = "1.1.1"
-
-# Wear
-playServicesWearable = "19.0.0"
-wearProtolayout = "1.3.0"
-wearTiles = "1.4.1"
-
-# Misc
-kotlinxSerialization = "1.10.0"
 securityCrypto = "1.1.0-alpha06"
 timber = "5.0.1"
+truth = "1.4.5"
+turbine = "1.2.1"
+wearProtolayout = "1.3.0"
+wearTiles = "1.4.1"
 workmanager = "2.10.0"
 
 [libraries]
-# Compose (BOM-managed — no version.ref needed)
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivityCompose" }
+android-gradleApiPlugin = { group = "com.android.tools.build", name = "gradle-api", version.ref = "agp" }
+android-tools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
+androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures", version.ref = "androidxConcurrentFutures" }
+androidx-concurrent-futures-ktx = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "androidxConcurrentFutures" }
+androidx-fragment-testing = { module = "androidx.fragment:fragment-testing", version.ref = "androidxFragmentTesting" }
+androidx-lint-gradle = { group = "androidx.lint", name = "lint-gradle", version.ref = "androidxLintGradle" }
+androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "androidxTest" }
+androidx-test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+androidx-test-junit = { module = "androidx.test.ext:junit-ktx", version.ref = "androidxTestJunit" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTest" }
+composable-preview-scanner = { module = "io.github.sergio-sastre.ComposablePreviewScanner:android", version.ref = "composablePreviewScanner" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+compose-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
 compose-material-icons = { group = "androidx.compose.material", name = "material-icons-core" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
@@ -70,80 +63,47 @@ compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4
 compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-
-# AndroidX
-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivityCompose" }
-androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures", version.ref = "androidxConcurrentFutures" }
-androidx-concurrent-futures-ktx = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "androidxConcurrentFutures" }
-androidx-fragment-testing = { module = "androidx.fragment:fragment-testing", version.ref = "androidxFragmentTesting" }
-androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "androidxTest" }
-androidx-test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
-androidx-test-junit = { module = "androidx.test.ext:junit-ktx", version.ref = "androidxTestJunit" }
-androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTest" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCoreKtx" }
-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigationCompose" }
-
-# DI
+detekt-compose = { module = "io.nlopez.compose.rules:detekt", version.ref = "detektComposeRules" }
+detekt-gradlePlugin = { group = "dev.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
+detekt-ktlint = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
+glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
+glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "dagger" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "dagger" }
 hilt-core = { module = "com.google.dagger:hilt-core", version.ref = "dagger" }
 hilt-core-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "dagger" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltAndroid" }
-
-# Coroutines
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
-
-# Quality
-detekt-compose = { module = "io.nlopez.compose.rules:detekt", version.ref = "detektComposeRules" }
-detekt-ktlint = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
-
-# Networking
+ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
+lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigationCompose" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
-
-# Testing
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
-composable-preview-scanner = { module = "io.github.sergio-sastre.ComposablePreviewScanner:android", version.ref = "composablePreviewScanner" }
+play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 roborazzi = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }
 roborazzi-compose-preview = { module = "io.github.takahirom.roborazzi:roborazzi-compose-preview-scanner-support", version.ref = "roborazzi" }
+roborazzi-gradlePlugin = { module = "io.github.takahirom.roborazzi:roborazzi-gradle-plugin", version.ref = "roborazzi" }
 roborazzi-junit-rule = { module = "io.github.takahirom.roborazzi:roborazzi-junit-rule", version.ref = "roborazzi" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
-
-# UI
-glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
-glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
-
-# Wear
-play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 wear-protolayout = { group = "androidx.wear.protolayout", name = "protolayout", version.ref = "wearProtolayout" }
 wear-protolayout-expression = { group = "androidx.wear.protolayout", name = "protolayout-expression", version.ref = "wearProtolayout" }
 wear-protolayout-material = { group = "androidx.wear.protolayout", name = "protolayout-material", version.ref = "wearProtolayout" }
 wear-tiles = { group = "androidx.wear.tiles", name = "tiles", version.ref = "wearTiles" }
 wear-tiles-material = { group = "androidx.wear.tiles", name = "tiles-material", version.ref = "wearTiles" }
-
-# Misc
-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
-timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 workmanager = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
-
-# Dependencies of the included build-logic
-android-gradleApiPlugin = { group = "com.android.tools.build", name = "gradle-api", version.ref = "agp" }
-android-tools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
-androidx-lint-gradle = { group = "androidx.lint", name = "lint-gradle", version.ref = "androidxLintGradle" }
-compose-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
-detekt-gradlePlugin = { group = "dev.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
-kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
-ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
-roborazzi-gradlePlugin = { module = "io.github.takahirom.roborazzi:roborazzi-gradle-plugin", version.ref = "roborazzi" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -156,19 +116,17 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
-
-# Plugins defined by this project
 quotanoia-android-application = { id = "quotanoia.android.application" }
 quotanoia-android-feature = { id = "quotanoia.android.feature" }
 quotanoia-android-library = { id = "quotanoia.android.library" }
 quotanoia-jvm-library = { id = "quotanoia.jvm.library" }
+roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 
 [bundles]
 android-test = [
+    "androidx-test-core",
     "androidx-test-espresso-core",
     "androidx-test-junit",
-    "androidx-test-core",
     "androidx-test-runner",
 ]
 compose-debug = [
@@ -176,9 +134,9 @@ compose-debug = [
     "compose-ui-tooling",
 ]
 compose-uiTesting = [
-    "compose-ui-test-junit4",
-    "androidx-test-junit",
     "androidx-test-core",
+    "androidx-test-junit",
+    "compose-ui-test-junit4",
 ]
 coroutine-testing = [
     "kotlinx-coroutines-test",
@@ -208,8 +166,8 @@ screenshot-testing = [
     "composable-preview-scanner",
     "roborazzi",
     "roborazzi-compose",
-    "roborazzi-junit-rule",
     "roborazzi-compose-preview",
+    "roborazzi-junit-rule",
 ]
 unit-testing = [
     "junit",
