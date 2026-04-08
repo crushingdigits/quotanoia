@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="AndroidGradlePluginVersion" severity="warning" />
+    <issue id="GradleDependency" severity="warning" />
+    <issue id="LintBaseline" severity="ignore" />
+    <issue id="LintBaselineFixed" severity="informational" />
+    <issue id="NewerVersionAvailable" severity="warning" />
+    <issue id="SyntheticAccessor" severity="ignore" />
+    <issue id="TypographyQuotes" severity="informational" />
+    <issue id="UnusedIds" severity="informational" />
+</lint>
