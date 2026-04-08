@@ -32,12 +32,6 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 configureAndroidTests(this)
                 configureKotlinAndroid(this)
                 configureUnitTests(this)
-
-                buildTypes {
-                    getByName("debug") {
-                        manifestPlaceholders["appAuthRedirectScheme"] = ""
-                    }
-                }
             }
 
             extensions.configure<LibraryAndroidComponentsExtension> {

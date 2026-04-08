@@ -42,12 +42,6 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 buildFeatures {
                     viewBinding = true
                 }
-
-                buildTypes {
-                    getByName("debug") {
-                        manifestPlaceholders["appAuthRedirectScheme"] = ""
-                    }
-                }
             }
 
             extensions.configure<LibraryAndroidComponentsExtension> {
