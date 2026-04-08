@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -19,11 +18,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: ./.github/actions/setup-build-env
       - run: ./gradlew detekt
       - name: Upload report
         if: always()
@@ -37,11 +32,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: ./.github/actions/setup-build-env
       - run: ./gradlew :app:lintDebug :wear:lintDebug
       - name: Upload report
         if: always()
@@ -55,11 +46,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: ./.github/actions/setup-build-env
       - run: ./gradlew testDebugUnitTest -PexcludeScreenshots
       - name: Upload report
         if: always()
@@ -75,11 +62,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: ./.github/actions/setup-build-env
       - run: ./gradlew verifyRoborazziDebug
       - name: Upload captures
         if: always()
@@ -94,9 +77,5 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: ./.github/actions/setup-build-env
       - run: ./gradlew assembleDebug
