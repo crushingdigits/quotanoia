@@ -1,23 +1,9 @@
 name: Setup Build Environment
-description: Checks out code, sets up JDK 17 (Temurin), and Gradle with dependency caching
-
-inputs:
-  lfs:
-    description: 'Checkout with Git LFS'
-    required: false
-    default: 'false'
-  ref:
-    description: 'Git ref to checkout (empty = default branch/triggering ref)'
-    required: false
-    default: ''
+description: Sets up JDK 17 (Temurin) and Gradle with dependency caching
 
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v6
-      with:
-        lfs: ${{ inputs.lfs }}
-        ref: ${{ inputs.ref }}
     - uses: actions/setup-java@v5
       with:
         distribution: temurin
