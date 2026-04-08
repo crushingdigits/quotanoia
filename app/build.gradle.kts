@@ -32,15 +32,7 @@ android {
         }
     }
 
-    testOptions {
-        unitTests {
-            all {
-                if (project.hasProperty("excludeScreenshots")) {
-                    it.exclude("**/ScreenshotTests.class")
-                }
-            }
-        }
-    }
+
 }
 
 dependencies {

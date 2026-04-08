@@ -47,7 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-build-env
-      - run: ./gradlew testDebugUnitTest -PexcludeScreenshots
+      - run: ./gradlew testDebugUnitTest
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
