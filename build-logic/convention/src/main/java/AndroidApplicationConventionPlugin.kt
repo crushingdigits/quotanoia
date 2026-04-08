@@ -21,6 +21,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             apply(plugin = libs.findPlugin("android.application").id)
+            apply(plugin = libs.findPlugin("kotlin.android").id)
             apply(plugin = libs.findPlugin("kotlin.serialization").id)
             apply(plugin = libs.findPlugin("ksp").id)
 
