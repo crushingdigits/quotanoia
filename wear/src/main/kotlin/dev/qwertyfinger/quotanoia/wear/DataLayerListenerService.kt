@@ -11,6 +11,7 @@ import org.json.JSONArray
  */
 class DataLayerListenerService : WearableListenerService() {
 
+    @Suppress("TooGenericExceptionCaught")
     override fun onMessageReceived(messageEvent: MessageEvent) {
         Log.d(TAG, "Message received: path=${messageEvent.path}, from=${messageEvent.sourceNodeId}")
 

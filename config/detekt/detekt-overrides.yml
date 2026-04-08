@@ -1,0 +1,130 @@
+complexity:
+  LargeClass:
+    excludes: ['**/test/**', '**/androidTest/**']
+  LongMethod:
+    excludes: ['**/test/**', '**/androidTest/**']
+  LongParameterList:
+    active: false
+  TooManyFunctions:
+    ignoreAnnotatedFunctions: ['Preview']
+
+coroutines:
+  CoroutineLaunchedInTestWithoutRunTest:
+    active: true
+  GlobalCoroutineUsage:
+    active: true
+  SuspendFunInFinallySection:
+    active: true
+  SuspendFunSwallowedCancellation:
+    active: true
+  SuspendFunWithCoroutineScopeReceiver:
+    active: true
+
+exceptions:
+  ErrorUsageWithThrowable:
+    active: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+  MatchingDeclarationName:
+    active: false
+
+performance:
+  CouldBeSequence:
+    active: true
+  UnnecessaryInitOnArray:
+    active: true
+  UnnecessaryPartOfBinaryExpression:
+    active: true
+  UnnecessaryTypeCasting:
+    active: true
+
+potential-bugs:
+  CastNullableToNonNullableType:
+    excludes: ['**/test/**', '**/androidTest/**']
+  CastToNullableType:
+    active: true
+  CharArrayToStringCall:
+    active: true
+  DontDowncastCollectionTypes:
+    active: true
+  ElseCaseInsteadOfExhaustiveWhen:
+    active: true
+  MissingSuperCall:
+    active: true
+  NullCheckOnMutableProperty:
+    active: true
+  NullableToStringCall:
+    active: true
+  PropertyUsedBeforeDeclaration:
+    active: true
+  UnconditionalJumpStatementInLoop:
+    active: true
+  UnnecessaryNotNullCheck:
+    active: true
+
+style:
+  DestructuringDeclarationWithTooManyEntries:
+    active: false
+  DoubleNegativeExpression:
+    active: true
+  ForbiddenComment:
+    active: false
+  MagicNumber:
+    ignorePropertyDeclaration: true
+  MaxLineLength:
+    excludes: ['**/test/**', '**/androidTest/**', '**/*.kts']
+    excludeCommentStatements: true
+  RangeUntilInsteadOfRangeTo:
+    active: true
+  RedundantConstructorKeyword:
+    active: true
+  ReturnCount:
+    excludedFunctions:
+      - 'equals'
+      - 'compareTo'
+  UnnecessaryBracesAroundTrailingLambda:
+    active: true
+  UnnecessaryInnerClass:
+    active: true
+  UnnecessaryLet:
+    active: true
+  UnnecessaryParentheses:
+    active: true
+    allowForUnclearPrecedence: true
+  UnnecessaryReversed:
+    active: true
+  UnusedImport:
+    active: true
+    additionalOperatorSet: []
+  UnusedPrivateFunction:
+    ignoreAnnotated: ['Preview']
+  UseEmptyCounterpart:
+    active: true
+  UseIfEmptyOrIfBlank:
+    active: true
+  UseLet:
+    active: true
+
+Compose:
+  Material2:
+    active: true
+  PreviewPublic:
+    active: false
+  UnstableCollections:
+    active: true
+
+ktlint:
+  code_style: 'ktlint_official'
+  ChainMethodContinuation:
+    active: true
+  FunctionSignature:
+    forceMultilineWhenParameterCountGreaterOrEqualThan: 2
+  MaximumLineLength:
+    ignoreBackTickedIdentifier: true
+    excludes: ['**/test/**', '**/androidTest/**']
+  TrailingCommaOnCallSite:
+    useTrailingCommaOnCallSite: true
+  TrailingCommaOnDeclarationSite:
+    useTrailingCommaOnDeclarationSite: true

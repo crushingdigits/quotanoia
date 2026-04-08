@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -20,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.qwertyfinger.quotanoia.ui.theme.QuotanoiaTheme
 
 @Composable
 fun CircularUsageBar(
@@ -83,5 +85,29 @@ fun CircularUsageBar(
                 fontSize = if (size > 60.dp) 10.sp else 8.sp,
             )
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F0F1A)
+@Composable
+private fun CircularUsageBarLowPreview() {
+    QuotanoiaTheme {
+        CircularUsageBar(utilization = 15f, label = "5h", size = 90.dp, strokeWidth = 10.dp)
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F0F1A)
+@Composable
+private fun CircularUsageBarMidPreview() {
+    QuotanoiaTheme {
+        CircularUsageBar(utilization = 55f, label = "5h", size = 90.dp, strokeWidth = 10.dp)
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F0F1A)
+@Composable
+private fun CircularUsageBarHighPreview() {
+    QuotanoiaTheme {
+        CircularUsageBar(utilization = 92f, label = "7d", size = 90.dp, strokeWidth = 10.dp)
     }
 }
