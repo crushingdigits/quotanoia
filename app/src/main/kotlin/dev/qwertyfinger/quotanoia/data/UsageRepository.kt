@@ -1,11 +1,11 @@
 package dev.qwertyfinger.quotanoia.data
 
+import dev.qwertyfinger.quotanoia.sync.WearSyncManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import dev.qwertyfinger.quotanoia.sync.WearSyncManager
 import timber.log.Timber
 import java.time.Instant
 import kotlin.math.min
@@ -35,6 +35,7 @@ class UsageRepository(
     }
 
     /** Fetch usage for all accounts. Returns updated states. */
+    @Suppress("InjectDispatcher")
     suspend fun refreshAll(): List<AccountState> = withContext(Dispatchers.IO) {
         val current = _states.value.toMutableList()
         val accounts = store.loadAccounts()
@@ -52,8 +53,11 @@ class UsageRepository(
                     }
                     store.cacheUsage(account.id, fetchResult.usage)
                     state.copy(
-                        account = if (fetchResult.newSessionKey != null)
-                            account.copy(sessionKey = fetchResult.newSessionKey) else account,
+                        account = if (fetchResult.newSessionKey != null) {
+                            account.copy(sessionKey = fetchResult.newSessionKey)
+                        } else {
+                            account
+                        },
                         usage = fetchResult.usage,
                         error = null,
                         backoffMs = BASE_POLL_INTERVAL_MS,
@@ -77,7 +81,7 @@ class UsageRepository(
                         backoffMs = newBackoff,
                         nextRetryAt = Instant.now().plusMillis(newBackoff),
                     )
-                }
+                },
             )
             if (index < current.size) current[index] = newState else current.add(newState)
         }
@@ -92,6 +96,7 @@ class UsageRepository(
     }
 
     /** Fetch for a single account. */
+    @Suppress("InjectDispatcher")
     suspend fun refreshAccount(accountId: String): AccountState? = withContext(Dispatchers.IO) {
         val current = _states.value.toMutableList()
         val idx = current.indexOfFirst { it.account.id == accountId }
@@ -109,8 +114,11 @@ class UsageRepository(
                 }
                 store.cacheUsage(accountId, fetchResult.usage)
                 state.copy(
-                    account = if (fetchResult.newSessionKey != null)
-                        account.copy(sessionKey = fetchResult.newSessionKey) else account,
+                    account = if (fetchResult.newSessionKey != null) {
+                        account.copy(sessionKey = fetchResult.newSessionKey)
+                    } else {
+                        account
+                    },
                     usage = fetchResult.usage,
                     error = null,
                     backoffMs = BASE_POLL_INTERVAL_MS,
@@ -134,7 +142,7 @@ class UsageRepository(
                     backoffMs = newBackoff,
                     nextRetryAt = Instant.now().plusMillis(newBackoff),
                 )
-            }
+            },
         )
 
         current[idx] = newState
@@ -144,12 +152,15 @@ class UsageRepository(
     }
 
     /** Minimum delay until next poll (smallest backoff across all accounts). */
-    fun nextPollDelayMs(): Long =
-        _states.value.minOfOrNull { it.backoffMs } ?: BASE_POLL_INTERVAL_MS
+    fun nextPollDelayMs(): Long = _states.value.minOfOrNull { it.backoffMs } ?: BASE_POLL_INTERVAL_MS
 
     // ── Account management (delegates to store, refreshes states) ──
 
-    fun addAccount(name: String, sessionKey: String, orgId: String): ClaudeAccount {
+    fun addAccount(
+        name: String,
+        sessionKey: String,
+        orgId: String,
+    ): ClaudeAccount {
         val account = ClaudeAccount(name = name, sessionKey = sessionKey, orgId = orgId)
         store.addAccount(account)
         initialize()
@@ -161,7 +172,12 @@ class UsageRepository(
         initialize()
     }
 
-    fun updateAccount(id: String, name: String, sessionKey: String, orgId: String) {
+    fun updateAccount(
+        id: String,
+        name: String,
+        sessionKey: String,
+        orgId: String,
+    ) {
         store.updateAccount(ClaudeAccount(id = id, name = name, sessionKey = sessionKey, orgId = orgId))
         initialize()
     }

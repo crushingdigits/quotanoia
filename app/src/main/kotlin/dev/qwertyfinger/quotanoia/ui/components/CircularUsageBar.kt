@@ -11,29 +11,40 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.qwertyfinger.quotanoia.ui.theme.QuotanoiaTheme
+
+private const val DEFAULT_SIZE = 80
+private const val DEFAULT_STROKE_WIDTH = 8
+private const val TRACK_COLOR = 0xFF2A2A40L
+private const val LARGE_SIZE_THRESHOLD = 60
+private const val FONT_SIZE_LARGE = 16
+private const val FONT_SIZE_SMALL = 12
+private const val LABEL_FONT_SIZE_LARGE = 10
+private const val LABEL_FONT_SIZE_SMALL = 8
+private const val PCT_DIVISOR = 100f
+private const val FULL_CIRCLE_DEGREES = 360f
 
 @Composable
 fun CircularUsageBar(
     utilization: Float,
     label: String,
     modifier: Modifier = Modifier,
-    size: Dp = 80.dp,
-    strokeWidth: Dp = 8.dp,
-    trackColor: Color = Color(0xFF2A2A40),
+    size: Dp = DEFAULT_SIZE.dp,
+    strokeWidth: Dp = DEFAULT_STROKE_WIDTH.dp,
+    trackColor: Color = Color(TRACK_COLOR),
 ) {
     val progressColor = utilizationColor(utilization)
-    val sweepAngle = (utilization / 100f).coerceIn(0f, 1f) * 360f
+    val sweepAngle = (utilization / PCT_DIVISOR).coerceIn(0f, 1f) * FULL_CIRCLE_DEGREES
 
     Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(size)) {
@@ -75,14 +86,14 @@ fun CircularUsageBar(
             Text(
                 text = "${utilization.toInt()}%",
                 color = progressColor,
-                fontSize = if (size > 60.dp) 16.sp else 12.sp,
+                fontSize = if (size > LARGE_SIZE_THRESHOLD.dp) FONT_SIZE_LARGE.sp else FONT_SIZE_SMALL.sp,
                 fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.height(1.dp))
             Text(
                 text = label,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = if (size > 60.dp) 10.sp else 8.sp,
+                fontSize = if (size > LARGE_SIZE_THRESHOLD.dp) LABEL_FONT_SIZE_LARGE.sp else LABEL_FONT_SIZE_SMALL.sp,
             )
         }
     }

@@ -15,11 +15,7 @@ data class UsageWindow(
     val resetsAt: Instant?, // null when window hasn't started (e.g. 5h at 0% usage)
 )
 
-data class UsageData(
-    val fiveHour: UsageWindow,
-    val sevenDay: UsageWindow,
-    val fetchedAt: Instant = Instant.now(),
-)
+data class UsageData(val fiveHour: UsageWindow, val sevenDay: UsageWindow, val fetchedAt: Instant = Instant.now())
 
 sealed class AccountError {
     data object TokenExpired : AccountError()
@@ -54,5 +50,5 @@ data class AccountState(
             Instant.now().epochSecond - usage.fetchedAt.epochSecond > 600 // 10 min
 }
 
-const val BASE_POLL_INTERVAL_MS = 5 * 60 * 1000L   // 5 minutes
-const val MAX_BACKOFF_MS = 30 * 60 * 1000L          // 30 minutes (unless server says more)
+const val BASE_POLL_INTERVAL_MS = 5 * 60 * 1000L // 5 minutes
+const val MAX_BACKOFF_MS = 30 * 60 * 1000L // 30 minutes (unless server says more)

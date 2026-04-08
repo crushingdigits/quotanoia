@@ -44,10 +44,17 @@ class QuotanoiaApp : Application() {
 
 /** Only logs Info, Warn, Error, and WTF in release builds. */
 private class ReleaseTree : Timber.Tree() {
-    override fun isLoggable(tag: String?, priority: Int): Boolean =
-        priority >= Log.INFO
+    override fun isLoggable(
+        tag: String?,
+        priority: Int,
+    ): Boolean = priority >= Log.INFO
 
-    override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+    override fun log(
+        priority: Int,
+        tag: String?,
+        message: String,
+        t: Throwable?,
+    ) {
         Log.println(priority, tag ?: "quotanoia", message)
     }
 }

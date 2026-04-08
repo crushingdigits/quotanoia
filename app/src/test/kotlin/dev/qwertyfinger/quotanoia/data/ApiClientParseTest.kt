@@ -54,8 +54,20 @@ class ApiClientParseTest {
         val result = client.parseUsage(json, null)
 
         assertTrue(result.isSuccess)
-        assertEquals(0f, result.getOrThrow().usage.fiveHour.utilization, 0.01f)
-        assertEquals(0f, result.getOrThrow().usage.sevenDay.utilization, 0.01f)
+        assertEquals(
+            0f,
+            result
+                .getOrThrow()
+                .usage.fiveHour.utilization,
+            0.01f,
+        )
+        assertEquals(
+            0f,
+            result
+                .getOrThrow()
+                .usage.sevenDay.utilization,
+            0.01f,
+        )
     }
 
     @Test
@@ -64,7 +76,13 @@ class ApiClientParseTest {
         val result = client.parseUsage(json, null)
 
         assertTrue(result.isSuccess)
-        assertEquals(100f, result.getOrThrow().usage.fiveHour.utilization, 0.01f)
+        assertEquals(
+            100f,
+            result
+                .getOrThrow()
+                .usage.fiveHour.utilization,
+            0.01f,
+        )
     }
 
     // ── parseUsage: null and missing resets_at ─────────────────────
@@ -81,8 +99,16 @@ class ApiClientParseTest {
         val result = client.parseUsage(json, null)
 
         assertTrue(result.isSuccess)
-        assertNull(result.getOrThrow().usage.fiveHour.resetsAt)
-        assertNotNull(result.getOrThrow().usage.sevenDay.resetsAt)
+        assertNull(
+            result
+                .getOrThrow()
+                .usage.fiveHour.resetsAt,
+        )
+        assertNotNull(
+            result
+                .getOrThrow()
+                .usage.sevenDay.resetsAt,
+        )
     }
 
     @Test
@@ -97,8 +123,16 @@ class ApiClientParseTest {
         val result = client.parseUsage(json, null)
 
         assertTrue(result.isSuccess)
-        assertNull(result.getOrThrow().usage.fiveHour.resetsAt)
-        assertNotNull(result.getOrThrow().usage.sevenDay.resetsAt)
+        assertNull(
+            result
+                .getOrThrow()
+                .usage.fiveHour.resetsAt,
+        )
+        assertNotNull(
+            result
+                .getOrThrow()
+                .usage.sevenDay.resetsAt,
+        )
     }
 
     @Test
@@ -113,7 +147,11 @@ class ApiClientParseTest {
         val result = client.parseUsage(json, null)
 
         assertTrue(result.isSuccess)
-        assertNull(result.getOrThrow().usage.fiveHour.resetsAt)
+        assertNull(
+            result
+                .getOrThrow()
+                .usage.fiveHour.resetsAt,
+        )
     }
 
     @Test
@@ -128,7 +166,13 @@ class ApiClientParseTest {
         val result = client.parseUsage(json, null)
 
         assertTrue(result.isSuccess)
-        assertEquals(0f, result.getOrThrow().usage.fiveHour.utilization, 0.01f)
+        assertEquals(
+            0f,
+            result
+                .getOrThrow()
+                .usage.fiveHour.utilization,
+            0.01f,
+        )
     }
 
     // ── parseUsage: missing window objects ─────────────────────────
@@ -237,12 +281,15 @@ class ApiClientParseTest {
 
     // ── Helpers ─────────────────────────────────────────────────────
 
-    private fun validJson(fiveHourUtil: Double = 42.5, sevenDayUtil: Double = 78.3) = """
+    private fun validJson(
+        fiveHourUtil: Double = 42.5,
+        sevenDayUtil: Double = 78.3,
+    ) = """
         {
           "five_hour": { "utilization": $fiveHourUtil, "resets_at": "2025-06-15T12:00:00Z" },
           "seven_day": { "utilization": $sevenDayUtil, "resets_at": "2025-06-20T00:00:00Z" }
         }
-    """.trimIndent()
+        """.trimIndent()
 
     private fun assertParseError(result: Result<UsageFetchResult>) {
         val error = (result.exceptionOrNull() as ApiClient.ApiException).accountError

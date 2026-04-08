@@ -27,32 +27,41 @@ class WearSyncManager(context: Context) {
                 Timber.d("Connected wearable nodes: %d", nodes.size)
                 for (node in nodes) {
                     Timber.d("Sending usage to %s (id=%s)", node.displayName, node.id)
-                    messageClient.sendMessage(node.id, PATH_USAGE, payload)
+                    messageClient
+                        .sendMessage(node.id, PATH_USAGE, payload)
                         .addOnSuccessListener {
                             Timber.d("Message sent to %s", node.displayName)
-                        }
-                        .addOnFailureListener {
+                        }.addOnFailureListener {
                             Timber.w(it, "Failed to send message to %s", node.displayName)
                         }
                 }
-            }
-            .addOnFailureListener { Timber.w(it, "Failed to get connected nodes") }
+            }.addOnFailureListener { Timber.w(it, "Failed to get connected nodes") }
     }
 
     private fun serializeStates(states: List<AccountState>): ByteArray {
         val arr = JSONArray()
         states.forEach { state ->
-            arr.put(JSONObject().apply {
-                put("id", state.account.id)
-                put("name", state.account.name)
-                put("has_data", state.usage != null)
-                if (state.usage != null) {
-                    put("5h_pct", state.usage.fiveHour.utilization.toDouble())
-                    put("7d_pct", state.usage.sevenDay.utilization.toDouble())
-                }
-                put("has_error", state.hasError)
-                put("error_msg", state.error?.displayMessage ?: "")
-            })
+            arr.put(
+                JSONObject().apply {
+                    put("id", state.account.id)
+                    put("name", state.account.name)
+                    put("has_data", state.usage != null)
+                    if (state.usage != null) {
+                        put(
+                            "5h_pct",
+                            state.usage.fiveHour.utilization
+                                .toDouble(),
+                        )
+                        put(
+                            "7d_pct",
+                            state.usage.sevenDay.utilization
+                                .toDouble(),
+                        )
+                    }
+                    put("has_error", state.hasError)
+                    put("error_msg", state.error?.displayMessage.orEmpty())
+                },
+            )
         }
         return arr.toString().toByteArray(Charsets.UTF_8)
     }

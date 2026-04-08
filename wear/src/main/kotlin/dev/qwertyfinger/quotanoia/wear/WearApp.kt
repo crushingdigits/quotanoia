@@ -7,7 +7,9 @@ import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import org.json.JSONArray
 
-class WearApp : Application(), MessageClient.OnMessageReceivedListener {
+class WearApp :
+    Application(),
+    MessageClient.OnMessageReceivedListener {
 
     lateinit var store: WearAccountStore
         private set
@@ -40,7 +42,8 @@ class WearApp : Application(), MessageClient.OnMessageReceivedListener {
 
             // Request tile update
             try {
-                val updater = androidx.wear.tiles.TileService.getUpdater(this)
+                val updater = androidx.wear.tiles.TileService
+                    .getUpdater(this)
                 updater.requestUpdate(UsageTileService::class.java)
             } catch (e: Exception) {
                 Log.w(TAG, "Could not request tile update", e)
