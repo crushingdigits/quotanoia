@@ -3,9 +3,9 @@ package dev.qwertyfinger.quotanoia.worker
 import android.content.Context
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
-import androidx.work.ExistingWorkPolicy
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dev.qwertyfinger.quotanoia.QuotanoiaApp
@@ -17,11 +17,10 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 /**
- * Self-rescheduling worker that fetches usage for all accounts,
- * then enqueues itself with a delay based on the current backoff state.
+ * Periodic worker that fetches usage for all accounts every 15 minutes.
  *
- * Base interval: 5 minutes. On 429/503 → exponential backoff up to 30 min (or server Retry-After if larger).
- * On success → reset to 5 min.
+ * Uses PeriodicWorkRequest — survives process death and doesn't rely on
+ * a self-rescheduling chain that can break silently.
  */
 class UsageWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
@@ -31,48 +30,38 @@ class UsageWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
             val app = QuotanoiaApp.instance
             app.repository.initialize()
             app.repository.refreshAll()
-
-            // Update widgets
             UsageWidgetReceiver.updateAll(applicationContext)
-
-            // Schedule next run based on backoff state
-            val delay = app.repository.nextPollDelayMs()
-            enqueueNext(applicationContext, delay)
-
-            Timber.d("Usage fetched. Next poll in %ds", delay / MILLIS_PER_SECOND)
+            Timber.d("Usage fetched for all accounts")
         }.fold(
             onSuccess = { Result.success() },
             onFailure = { e ->
                 Timber.e(e, "Worker failed")
-                enqueueNext(applicationContext) // retry at base interval
-                Result.failure()
+                Result.retry()
             },
         )
     }
 
     companion object {
         private const val WORK_NAME = "claude_usage_poll"
-        private const val MILLIS_PER_SECOND = 1000
+        private const val POLL_INTERVAL_MINUTES = 15L
 
-        fun enqueueNext(
-            context: Context,
-            delayMs: Long = dev.qwertyfinger.quotanoia.data.BASE_POLL_INTERVAL_MS,
-        ) {
-            val request = OneTimeWorkRequestBuilder<UsageWorker>()
-                .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
-                .setConstraints(
-                    Constraints
-                        .Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build(),
-                ).addTag(WORK_NAME)
+        fun enqueue(context: Context) {
+            val request = PeriodicWorkRequestBuilder<UsageWorker>(
+                POLL_INTERVAL_MINUTES,
+                TimeUnit.MINUTES,
+            ).setConstraints(
+                Constraints
+                    .Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build(),
+            ).addTag(WORK_NAME)
                 .build()
 
             WorkManager
                 .getInstance(context)
-                .enqueueUniqueWork(
+                .enqueueUniquePeriodicWork(
                     WORK_NAME,
-                    ExistingWorkPolicy.REPLACE,
+                    ExistingPeriodicWorkPolicy.UPDATE,
                     request,
                 )
         }

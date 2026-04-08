@@ -151,9 +151,6 @@ class UsageRepository(
         newState
     }
 
-    /** Minimum delay until next poll (smallest backoff across all accounts). */
-    fun nextPollDelayMs(): Long = _states.value.minOfOrNull { it.backoffMs } ?: BASE_POLL_INTERVAL_MS
-
     // ── Account management (delegates to store, refreshes states) ──
 
     fun addAccount(

@@ -49,7 +49,7 @@ class QuotanoiaApp : Application(), MessageClient.OnMessageReceivedListener {
         Wearable.getMessageClient(this).addListener(this)
         Timber.d("Phone MessageClient listener registered")
 
-        UsageWorker.enqueueNext(this)
+        UsageWorker.enqueue(this)
     }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
