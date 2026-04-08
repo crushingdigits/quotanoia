@@ -35,7 +35,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import dev.qwertyfinger.quotanoia.MainActivity
 import dev.qwertyfinger.quotanoia.QuotanoiaApp
-import dev.qwertyfinger.quotanoia.data.AccountState
+import dev.qwertyfinger.quotanoia.data.model.AccountState
 import dev.qwertyfinger.quotanoia.ui.components.utilizationColor
 
 class UsageWidget : GlanceAppWidget() {
@@ -123,15 +123,16 @@ private fun AccountRow(state: AccountState) {
             ),
         )
 
-        if (state.usage != null) {
+        val usage = state.usage
+        if (usage != null) {
             Spacer(GlanceModifier.height(WIDGET_USAGE_SPACING.dp))
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                UsageBarWidget(state.usage.fiveHour.utilization, "5h")
+                UsageBarWidget(usage.fiveHour.utilization, "5h")
                 Spacer(GlanceModifier.width(WIDGET_USAGE_COL_SPACING.dp))
-                UsageBarWidget(state.usage.sevenDay.utilization, "7d")
+                UsageBarWidget(usage.sevenDay.utilization, "7d")
             }
         } else if (hasError) {
             Text(

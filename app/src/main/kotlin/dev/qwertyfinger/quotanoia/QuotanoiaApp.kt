@@ -7,10 +7,10 @@ import android.util.Log
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
-import dev.qwertyfinger.quotanoia.data.AccountStore
-import dev.qwertyfinger.quotanoia.data.ApiClient
-import dev.qwertyfinger.quotanoia.data.UsageRepository
-import dev.qwertyfinger.quotanoia.sync.WearSyncManager
+import dev.qwertyfinger.quotanoia.data.api.ApiClient
+import dev.qwertyfinger.quotanoia.data.repository.UsageRepository
+import dev.qwertyfinger.quotanoia.data.store.AccountStore
+import dev.qwertyfinger.quotanoia.data.sync.WearSyncManager
 import dev.qwertyfinger.quotanoia.widget.UsageWidgetReceiver
 import dev.qwertyfinger.quotanoia.worker.UsageWorker
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +42,7 @@ class QuotanoiaApp : Application(), MessageClient.OnMessageReceivedListener {
 
         store = AccountStore(this)
         wearSync = WearSyncManager(this)
-        repository = UsageRepository(store, ApiClient(), wearSync)
+        repository = UsageRepository(store, ApiClient(debug = BuildConfig.DEBUG), wearSync)
         repository.initialize()
 
         // Listen for refresh requests from the watch

@@ -43,7 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.qwertyfinger.quotanoia.data.AccountState
+import dev.qwertyfinger.quotanoia.data.model.AccountState
 import dev.qwertyfinger.quotanoia.ui.components.CircularUsageBar
 import kotlinx.coroutines.delay
 import java.time.Duration
@@ -199,19 +199,20 @@ private fun AccountCard(
             Spacer(Modifier.height(SPACER_MEDIUM.dp))
 
             // Usage bars
-            if (state.usage != null) {
+            val usage = state.usage
+            if (usage != null) {
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     CircularUsageBar(
-                        utilization = state.usage.fiveHour.utilization,
+                        utilization = usage.fiveHour.utilization,
                         label = "5h",
                         size = USAGE_BAR_SIZE.dp,
                         strokeWidth = USAGE_BAR_STROKE.dp,
                     )
                     CircularUsageBar(
-                        utilization = state.usage.sevenDay.utilization,
+                        utilization = usage.sevenDay.utilization,
                         label = "7d",
                         size = USAGE_BAR_SIZE.dp,
                         strokeWidth = USAGE_BAR_STROKE.dp,
@@ -225,8 +226,8 @@ private fun AccountCard(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    ResetLabel("5h resets", state.usage.fiveHour.resetsAt, now)
-                    ResetLabel("7d resets", state.usage.sevenDay.resetsAt, now)
+                    ResetLabel("5h resets", usage.fiveHour.resetsAt, now)
+                    ResetLabel("7d resets", usage.sevenDay.resetsAt, now)
                 }
             } else if (!state.hasError) {
                 Text(

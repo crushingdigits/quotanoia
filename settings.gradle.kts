@@ -21,4 +21,5 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 rootProject.name = "quotanoia"
 include(":app")
 include(":core:coroutines")
+include(":data")
 include(":wear")
