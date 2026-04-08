@@ -17,6 +17,8 @@ class WearAccountStore(context: Context) {
     data class WearUsage(
         val fiveHourPct: Float,
         val sevenDayPct: Float,
+        val fiveHourResetsAtMs: Long = 0L,
+        val sevenDayResetsAtMs: Long = 0L,
         val hasError: Boolean = false,
         val errorMsg: String? = null,
     )
@@ -38,11 +40,13 @@ class WearAccountStore(context: Context) {
                 WearUsage(
                     fiveHourPct = prefs.getFloat("${i}_5h_pct", -1f),
                     sevenDayPct = prefs.getFloat("${i}_7d_pct", -1f),
+                    fiveHourResetsAtMs = prefs.getLong("${i}_5h_resets", 0L),
+                    sevenDayResetsAtMs = prefs.getLong("${i}_7d_resets", 0L),
                     hasError = hasError,
                     errorMsg = errorMsg,
                 )
             } else {
-                WearUsage(-1f, -1f, hasError, errorMsg)
+                WearUsage(-1f, -1f, hasError = hasError, errorMsg = errorMsg)
             }
 
             AccountWithUsage(WearAccount(id, name), usage)
@@ -60,6 +64,8 @@ class WearAccountStore(context: Context) {
                 putBoolean("${i}_has_data", obj.optBoolean("has_data", false))
                 putFloat("${i}_5h_pct", obj.optDouble("5h_pct", -1.0).toFloat())
                 putFloat("${i}_7d_pct", obj.optDouble("7d_pct", -1.0).toFloat())
+                putLong("${i}_5h_resets", obj.optLong("5h_resets_at", 0L))
+                putLong("${i}_7d_resets", obj.optLong("7d_resets_at", 0L))
                 putBoolean("${i}_has_error", obj.optBoolean("has_error", false))
                 putString("${i}_error_msg", obj.optString("error_msg", ""))
             }

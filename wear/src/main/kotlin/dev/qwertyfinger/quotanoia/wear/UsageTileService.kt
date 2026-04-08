@@ -1,10 +1,24 @@
+@file:Suppress(
+    "MagicNumber",
+    "ChainMethodContinuation",
+    "FunctionSignature",
+    "LongMethod",
+    "ReturnCount",
+    "FunctionExpressionBody",
+)
+
 package dev.qwertyfinger.quotanoia.wear
 
 import android.graphics.Color
+import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.ColorBuilders.argb
+import androidx.wear.protolayout.DimensionBuilders.degrees
 import androidx.wear.protolayout.DimensionBuilders.dp
 import androidx.wear.protolayout.DimensionBuilders.expand
 import androidx.wear.protolayout.DimensionBuilders.sp
+import androidx.wear.protolayout.LayoutElementBuilders.ARC_ANCHOR_START
+import androidx.wear.protolayout.LayoutElementBuilders.Arc
+import androidx.wear.protolayout.LayoutElementBuilders.ArcLine
 import androidx.wear.protolayout.LayoutElementBuilders.Box
 import androidx.wear.protolayout.LayoutElementBuilders.Column
 import androidx.wear.protolayout.LayoutElementBuilders.FONT_WEIGHT_BOLD
@@ -16,6 +30,7 @@ import androidx.wear.protolayout.LayoutElementBuilders.Row
 import androidx.wear.protolayout.LayoutElementBuilders.Spacer
 import androidx.wear.protolayout.LayoutElementBuilders.Text
 import androidx.wear.protolayout.LayoutElementBuilders.VERTICAL_ALIGN_CENTER
+import androidx.wear.protolayout.ModifiersBuilders
 import androidx.wear.protolayout.ResourceBuilders.Resources
 import androidx.wear.protolayout.TimelineBuilders.Timeline
 import androidx.wear.protolayout.TimelineBuilders.TimelineEntry
@@ -27,19 +42,28 @@ import com.google.common.util.concurrent.ListenableFuture
 
 /**
  * Watch tile that displays Claude usage data synced from the phone.
- * No direct API calls — all data comes via Wearable Data Layer.
+ * No direct API calls — all data comes via MessageClient from phone.
  */
 class UsageTileService : TileService() {
 
-    override fun onTileRequest(requestParams: RequestBuilders.TileRequest): ListenableFuture<TileBuilders.Tile> {
+    override fun onTileRequest(
+        requestParams: RequestBuilders.TileRequest,
+    ): ListenableFuture<TileBuilders.Tile> {
+        val isRefreshing = requestParams.currentState.lastClickableId == "refresh"
+
+        // If this is a LoadAction (user tapped refresh), request fresh data from phone
+        if (isRefreshing) {
+            RefreshHelper.requestRefreshFromPhone(this)
+        }
+
         val store = WearApp.instance.store
         val entries = store.getAll()
 
-        val root = if (entries.isEmpty()) emptyLayout() else accountsLayout(entries)
+        val root = if (entries.isEmpty()) emptyLayout() else arcLayout(entries, isRefreshing)
 
         val tile = TileBuilders.Tile
             .Builder()
-            .setResourcesVersion("1")
+            .setResourcesVersion(RESOURCES_VERSION)
             .setFreshnessIntervalMillis(FRESHNESS_INTERVAL_MS)
             .setTileTimeline(
                 Timeline
@@ -55,10 +79,12 @@ class UsageTileService : TileService() {
         return Futures.immediateFuture(tile)
     }
 
-    override fun onTileResourcesRequest(requestParams: RequestBuilders.ResourcesRequest): ListenableFuture<Resources> =
+    override fun onTileResourcesRequest(
+        requestParams: RequestBuilders.ResourcesRequest,
+    ): ListenableFuture<Resources> =
         Futures
             .immediateFuture(
-                Resources.Builder().setVersion("1").build(),
+                Resources.Builder().setVersion(RESOURCES_VERSION).build(),
             )
 
     // ── Layouts ────────────────────────────────────────────
@@ -82,12 +108,20 @@ class UsageTileService : TileService() {
                 ).build(),
         ).build()
 
-    private fun accountsLayout(entries: List<WearAccountStore.AccountWithUsage>): LayoutElement {
+    /**
+     * Arc-based layout: shows usage as colored arcs around the tile edge
+     * with text details in the center.
+     */
+    private fun arcLayout(
+        entries: List<WearAccountStore.AccountWithUsage>,
+        isRefreshing: Boolean = false,
+    ): LayoutElement {
         val column = Column
             .Builder()
             .setWidth(expand())
             .setHorizontalAlignment(HORIZONTAL_ALIGN_CENTER)
 
+        // Title
         column.addContent(
             Text
                 .Builder()
@@ -95,7 +129,7 @@ class UsageTileService : TileService() {
                 .setFontStyle(
                     FontStyle
                         .Builder()
-                        .setSize(sp(FONT_SIZE_SMALL))
+                        .setSize(sp(FONT_SIZE_TITLE))
                         .setColor(argb(Color.parseColor("#7B9CFF")))
                         .setWeight(FONT_WEIGHT_BOLD)
                         .build(),
@@ -108,6 +142,41 @@ class UsageTileService : TileService() {
             column.addContent(spacer(SPACER_SMALL_DP))
         }
 
+        // Refresh hint at bottom
+        val refreshText = if (isRefreshing) "Refreshing\u2026" else "\u21BB tap to refresh"
+        column.addContent(
+            Text
+                .Builder()
+                .setText(refreshText)
+                .setFontStyle(
+                    FontStyle
+                        .Builder()
+                        .setSize(sp(FONT_SIZE_REFRESH_HINT))
+                        .setColor(argb(Color.parseColor("#666666")))
+                        .build(),
+                ).setModifiers(
+                    ModifiersBuilders.Modifiers
+                        .Builder()
+                        .setClickable(
+                            ModifiersBuilders.Clickable
+                                .Builder()
+                                .setId("refresh")
+                                .setOnClick(
+                                    ActionBuilders.LoadAction.Builder().build(),
+                                ).build(),
+                        ).build(),
+                ).build(),
+        )
+
+        // If we have at least one account with data, wrap with arcs
+        val firstWithData = entries.firstOrNull { it.usage.fiveHourPct >= 0 }
+        if (firstWithData != null) {
+            return arcWrappedLayout(
+                column.build(),
+                firstWithData.usage.fiveHourPct,
+            )
+        }
+
         return Box
             .Builder()
             .setWidth(expand())
@@ -117,12 +186,63 @@ class UsageTileService : TileService() {
             .build()
     }
 
+    /**
+     * Wraps content with an arc showing 5h usage percentage.
+     */
+    private fun arcWrappedLayout(
+        center: LayoutElement,
+        fiveHourPct: Float,
+    ): LayoutElement {
+        val sweep = (fiveHourPct / PCT_MAX).coerceIn(0f, 1f) * ARC_FULL_DEGREES
+
+        val arc = Arc
+            .Builder()
+            .setAnchorAngle(degrees(ARC_ANCHOR_ANGLE))
+            .setAnchorType(ARC_ANCHOR_START)
+            .addContent(
+                ArcLine
+                    .Builder()
+                    .setLength(degrees(sweep))
+                    .setThickness(dp(ARC_THICKNESS_DP))
+                    .setColor(argb(pctToArgb(fiveHourPct)))
+                    .build(),
+            ).addContent(
+                ArcLine
+                    .Builder()
+                    .setLength(degrees((ARC_FULL_DEGREES - sweep).coerceAtLeast(ARC_MIN_REMAINDER)))
+                    .setThickness(dp(ARC_THICKNESS_DP))
+                    .setColor(argb(Color.parseColor("#1A1A2E")))
+                    .build(),
+            ).build()
+
+        return Box
+            .Builder()
+            .setWidth(expand())
+            .setHeight(expand())
+            .setHorizontalAlignment(HORIZONTAL_ALIGN_CENTER)
+            .setVerticalAlignment(VERTICAL_ALIGN_CENTER)
+            .addContent(arc)
+            .addContent(
+                Box
+                    .Builder()
+                    .setWidth(expand())
+                    .setHeight(expand())
+                    .setVerticalAlignment(VERTICAL_ALIGN_CENTER)
+                    .addContent(center)
+                    .build(),
+            ).build()
+    }
+
     @Suppress("LongMethod")
     private fun accountRow(
         name: String,
         usage: WearAccountStore.WearUsage,
     ): LayoutElement {
-        val nameColor = if (usage.hasError) Color.parseColor("#E53935") else Color.parseColor("#E0E0E0")
+        val nameColor = if (usage.hasError) {
+            Color.parseColor("#E53935")
+        } else {
+            Color.parseColor("#E0E0E0")
+        }
 
         val col = Column
             .Builder()
@@ -170,6 +290,32 @@ class UsageTileService : TileService() {
             row.addContent(sevenDayLabel)
 
             col.addContent(row.build())
+
+            // Reset times
+            val now = System.currentTimeMillis()
+            val resetRow = Row
+                .Builder()
+                .setVerticalAlignment(VERTICAL_ALIGN_CENTER)
+            resetRow.addContent(
+                dimLabel(
+                    "\u21BB${formatResetTime(usage.fiveHourResetsAtMs, now)}",
+                    FONT_SIZE_RESET,
+                ),
+            )
+            resetRow.addContent(
+                Text
+                    .Builder()
+                    .setText("  ")
+                    .setFontStyle(FontStyle.Builder().setSize(sp(FONT_SIZE_RESET)).build())
+                    .build(),
+            )
+            resetRow.addContent(
+                dimLabel(
+                    "\u21BB${formatResetTime(usage.sevenDayResetsAtMs, now)}",
+                    FONT_SIZE_RESET,
+                ),
+            )
+            col.addContent(resetRow.build())
         } else if (usage.hasError) {
             col.addContent(
                 Text
@@ -205,6 +351,20 @@ class UsageTileService : TileService() {
                 .build(),
         ).build()
 
+    private fun dimLabel(
+        text: String,
+        sizeSp: Float,
+    ): LayoutElement = Text
+        .Builder()
+        .setText(text)
+        .setFontStyle(
+            FontStyle
+                .Builder()
+                .setSize(sp(sizeSp))
+                .setColor(argb(Color.parseColor("#888888")))
+                .build(),
+        ).build()
+
     private fun spacer(heightDp: Float): LayoutElement = Spacer.Builder().setHeight(dp(heightDp)).build()
 
     private fun pctToArgb(pct: Float): Int {
@@ -217,17 +377,44 @@ class UsageTileService : TileService() {
         }
     }
 
+    private fun formatResetTime(resetMs: Long, nowMs: Long): String {
+        if (resetMs <= 0) return "?"
+        val diff = resetMs - nowMs
+        if (diff <= 0) return "now"
+        val totalSec = diff / MILLIS_PER_SECOND
+        val days = totalSec / SECONDS_PER_DAY
+        val hours = totalSec % SECONDS_PER_DAY / SECONDS_PER_HOUR
+        val mins = totalSec % SECONDS_PER_HOUR / SECONDS_PER_MINUTE
+        return when {
+            days > 0 -> "${days}d${hours}h"
+            hours > 0 -> "${hours}h${mins}m"
+            else -> "${mins}m"
+        }
+    }
+
     companion object {
+        private const val RESOURCES_VERSION = "2"
         private const val FRESHNESS_INTERVAL_MS = 5 * 60 * 1000L
         private const val MAX_ACCOUNTS_SHOWN = 3
-        private const val SPACER_SMALL_DP = 4f
-        private const val FONT_SIZE_SMALL = 12f
-        private const val FONT_SIZE_ACCOUNT_NAME = 11f
-        private const val FONT_SIZE_USAGE_LABEL = 10f
-        private const val FONT_SIZE_ERROR = 9f
+        private const val SPACER_SMALL_DP = 6f
+        private const val FONT_SIZE_SMALL = 14f
+        private const val FONT_SIZE_TITLE = 13f
+        private const val FONT_SIZE_ACCOUNT_NAME = 13f
+        private const val FONT_SIZE_USAGE_LABEL = 13f
+        private const val FONT_SIZE_ERROR = 11f
+        private const val FONT_SIZE_RESET = 10f
+        private const val FONT_SIZE_REFRESH_HINT = 10f
         private const val PCT_MAX = 100f
         private const val PCT_LOW = 40f
         private const val PCT_MEDIUM = 70f
         private const val PCT_HIGH = 85f
+        private const val ARC_FULL_DEGREES = 360f
+        private const val ARC_ANCHOR_ANGLE = -90f
+        private const val ARC_THICKNESS_DP = 6f
+        private const val ARC_MIN_REMAINDER = 0.1f
+        private const val MILLIS_PER_SECOND = 1000L
+        private const val SECONDS_PER_DAY = 86400L
+        private const val SECONDS_PER_HOUR = 3600L
+        private const val SECONDS_PER_MINUTE = 60L
     }
 }
