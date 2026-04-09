@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.android.lint)
 }
 
-group = "dev.qwertyfinger.quotanoia.buildlogic"
+group = "dev.crushingdigits.quotanoia.buildlogic"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17

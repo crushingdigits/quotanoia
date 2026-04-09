@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.qwertyfinger.quotanoia.data"
+    namespace = "dev.crushingdigits.quotanoia.data"
 }
 
 dependencies {

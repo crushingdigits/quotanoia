@@ -3,10 +3,10 @@ plugins {
 }
 
 android {
-    namespace = "dev.qwertyfinger.quotanoia"
+    namespace = "dev.crushingdigits.quotanoia"
 
     defaultConfig {
-        applicationId = "dev.qwertyfinger.quotanoia"
+        applicationId = "dev.crushingdigits.quotanoia"
         minSdk = 28
         versionCode = 1
         versionName = "0.1.0-poc"

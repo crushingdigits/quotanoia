@@ -7,7 +7,7 @@
         errorLine1="            .background(BG_COLOR)"
         errorLine2="                        ~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="64"
             column="25"/>
     </issue>
@@ -18,7 +18,7 @@
         errorLine1="                style = TextStyle(color = ColorProvider(MUTED_COLOR), fontSize = 14.sp),"
         errorLine2="                                                        ~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="72"
             column="57"/>
     </issue>
@@ -29,7 +29,7 @@
         errorLine1="                color = ColorProvider(if (hasError) ERROR_COLOR else TEXT_COLOR),"
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="98"
             column="39"/>
     </issue>
@@ -40,7 +40,7 @@
         errorLine1="                style = TextStyle(color = ColorProvider(ERROR_COLOR), fontSize = 10.sp),"
         errorLine2="                                                        ~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="117"
             column="57"/>
     </issue>
@@ -293,7 +293,7 @@
         errorLine1="                style = TextStyle(color = ColorProvider(MUTED_COLOR), fontSize = 14.sp),"
         errorLine2="                                          ~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="72"
             column="43"/>
     </issue>
@@ -304,7 +304,7 @@
         errorLine1="                color = ColorProvider(if (hasError) ERROR_COLOR else TEXT_COLOR),"
         errorLine2="                        ~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="98"
             column="25"/>
     </issue>
@@ -315,7 +315,7 @@
         errorLine1="                style = TextStyle(color = ColorProvider(ERROR_COLOR), fontSize = 10.sp),"
         errorLine2="                                          ~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="117"
             column="43"/>
     </issue>
@@ -377,7 +377,7 @@
         errorLine1="        securePrefs.edit().putString(KEY_ACCOUNTS, arr.toString()).apply()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/data/AccountStore.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/data/AccountStore.kt"
             line="63"
             column="9"/>
     </issue>
@@ -388,7 +388,7 @@
         errorLine1="        cachePrefs.edit()"
         errorLine2="        ~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/data/AccountStore.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/data/AccountStore.kt"
             line="96"
             column="9"/>
     </issue>
@@ -399,7 +399,7 @@
         errorLine1="        cachePrefs.edit()"
         errorLine2="        ~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/data/AccountStore.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/data/AccountStore.kt"
             line="104"
             column="9"/>
     </issue>
@@ -410,7 +410,7 @@
         errorLine1="        cachePrefs.edit()"
         errorLine2="        ~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/data/AccountStore.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/data/AccountStore.kt"
             line="144"
             column="9"/>
     </issue>
@@ -421,7 +421,7 @@
         errorLine1="private val BG_COLOR = android.graphics.Color.parseColor(&quot;#1A1A2E&quot;)"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="54"
             column="24"/>
     </issue>
@@ -432,7 +432,7 @@
         errorLine1="private val TEXT_COLOR = android.graphics.Color.parseColor(&quot;#E0E0E0&quot;)"
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="55"
             column="26"/>
     </issue>
@@ -443,7 +443,7 @@
         errorLine1="private val MUTED_COLOR = android.graphics.Color.parseColor(&quot;#AAAAAA&quot;)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="56"
             column="27"/>
     </issue>
@@ -454,7 +454,7 @@
         errorLine1="private val ERROR_COLOR = android.graphics.Color.parseColor(&quot;#E53935&quot;)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="57"
             column="27"/>
     </issue>
@@ -465,7 +465,7 @@
         errorLine1="    val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)"
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="134"
             column="18"/>
     </issue>
@@ -476,7 +476,7 @@
         errorLine1="        color = android.graphics.Color.parseColor(&quot;#2A2A40&quot;)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="143"
             column="17"/>
     </issue>
@@ -487,7 +487,7 @@
         errorLine1="        color = android.graphics.Color.parseColor(&quot;#2A2A40&quot;)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="143"
             column="17"/>
     </issue>
@@ -498,7 +498,7 @@
         errorLine1="        color = android.graphics.Color.parseColor(&quot;#B0B0B0&quot;)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="180"
             column="17"/>
     </issue>
@@ -509,7 +509,7 @@
         errorLine1="        color = android.graphics.Color.parseColor(&quot;#B0B0B0&quot;)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/dev/qwertyfinger/quotanoia/widget/UsageWidget.kt"
+            file="src/main/kotlin/dev/crushingdigits/quotanoia/widget/UsageWidget.kt"
             line="180"
             column="17"/>
     </issue>

@@ -1,10 +1,10 @@
-import dev.qwertyfinger.quotanoia.configureDetekt
-import dev.qwertyfinger.quotanoia.configureHilt
-import dev.qwertyfinger.quotanoia.configureKotlinJvm
-import dev.qwertyfinger.quotanoia.configureLint
-import dev.qwertyfinger.quotanoia.configureUnitTests
-import dev.qwertyfinger.quotanoia.id
-import dev.qwertyfinger.quotanoia.libs
+import dev.crushingdigits.quotanoia.configureDetekt
+import dev.crushingdigits.quotanoia.configureHilt
+import dev.crushingdigits.quotanoia.configureKotlinJvm
+import dev.crushingdigits.quotanoia.configureLint
+import dev.crushingdigits.quotanoia.configureUnitTests
+import dev.crushingdigits.quotanoia.id
+import dev.crushingdigits.quotanoia.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
