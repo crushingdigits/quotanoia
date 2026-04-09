@@ -1,12 +1,11 @@
-package dev.qwertyfinger.quotanoia.sync
+package dev.qwertyfinger.quotanoia.data.sync
 
 import android.content.Context
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.NodeClient
 import com.google.android.gms.wearable.Wearable
-import dev.qwertyfinger.quotanoia.data.AccountState
-import org.json.JSONArray
-import org.json.JSONObject
+import dev.qwertyfinger.quotanoia.data.model.AccountState
+import kotlinx.serialization.json.Json
 import timber.log.Timber
 
 /**
@@ -16,6 +15,7 @@ import timber.log.Timber
  */
 class WearSyncManager(context: Context) {
 
+    private val json = Json { ignoreUnknownKeys = true }
     private val messageClient: MessageClient = Wearable.getMessageClient(context)
     private val nodeClient: NodeClient = Wearable.getNodeClient(context)
 
@@ -39,41 +39,32 @@ class WearSyncManager(context: Context) {
     }
 
     private fun serializeStates(states: List<AccountState>): ByteArray {
-        val arr = JSONArray()
-        states.forEach { state ->
-            arr.put(
-                JSONObject().apply {
-                    put("id", state.account.id)
-                    put("name", state.account.name)
-                    put("has_data", state.usage != null)
-                    if (state.usage != null) {
-                        put(
-                            "5h_pct",
-                            state.usage.fiveHour.utilization
-                                .toDouble(),
-                        )
-                        put(
-                            "7d_pct",
-                            state.usage.sevenDay.utilization
-                                .toDouble(),
-                        )
-                        put(
-                            "5h_resets_at",
-                            state.usage.fiveHour.resetsAt
-                                ?.toEpochMilli() ?: 0L,
-                        )
-                        put(
-                            "7d_resets_at",
-                            state.usage.sevenDay.resetsAt
-                                ?.toEpochMilli() ?: 0L,
-                        )
-                    }
-                    put("has_error", state.hasError)
-                    put("error_msg", state.error?.displayMessage.orEmpty())
-                },
+        val dtos = states.map { state ->
+            WearSyncAccount(
+                id = state.account.id,
+                name = state.account.name,
+                hasData = state.usage != null,
+                fiveHourPct = state.usage
+                    ?.fiveHour
+                    ?.utilization
+                    ?.toDouble() ?: -1.0,
+                sevenDayPct = state.usage
+                    ?.sevenDay
+                    ?.utilization
+                    ?.toDouble() ?: -1.0,
+                fiveHourResetsAtMs = state.usage
+                    ?.fiveHour
+                    ?.resetsAt
+                    ?.toEpochMilli() ?: 0L,
+                sevenDayResetsAtMs = state.usage
+                    ?.sevenDay
+                    ?.resetsAt
+                    ?.toEpochMilli() ?: 0L,
+                hasError = state.hasError,
+                errorMsg = state.error?.displayMessage.orEmpty(),
             )
         }
-        return arr.toString().toByteArray(Charsets.UTF_8)
+        return json.encodeToString(dtos).toByteArray(Charsets.UTF_8)
     }
 
     companion object {

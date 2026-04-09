@@ -2,7 +2,8 @@ package dev.qwertyfinger.quotanoia.wear
 
 import android.content.Context
 import android.content.SharedPreferences
-import org.json.JSONArray
+import dev.qwertyfinger.quotanoia.data.sync.WearSyncAccount
+import kotlinx.serialization.json.Json
 
 /**
  * Local cache for usage data received from the phone via Data Layer.
@@ -12,6 +13,8 @@ class WearAccountStore(context: Context) {
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences("wear_usage_cache", Context.MODE_PRIVATE)
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     data class WearAccount(val id: String, val name: String)
     data class WearUsage(
@@ -53,21 +56,25 @@ class WearAccountStore(context: Context) {
         }
     }
 
-    fun updateFromJson(arr: JSONArray) {
+    fun parsePayload(data: ByteArray): List<WearSyncAccount> {
+        val raw = String(data, Charsets.UTF_8)
+        return json.decodeFromString<List<WearSyncAccount>>(raw)
+    }
+
+    fun updateFromSyncAccounts(accounts: List<WearSyncAccount>) {
         prefs.edit().apply {
             clear()
-            putInt("count", arr.length())
-            for (i in 0 until arr.length()) {
-                val obj = arr.getJSONObject(i)
-                putString("${i}_id", obj.optString("id", ""))
-                putString("${i}_name", obj.optString("name", ""))
-                putBoolean("${i}_has_data", obj.optBoolean("has_data", false))
-                putFloat("${i}_5h_pct", obj.optDouble("5h_pct", -1.0).toFloat())
-                putFloat("${i}_7d_pct", obj.optDouble("7d_pct", -1.0).toFloat())
-                putLong("${i}_5h_resets", obj.optLong("5h_resets_at", 0L))
-                putLong("${i}_7d_resets", obj.optLong("7d_resets_at", 0L))
-                putBoolean("${i}_has_error", obj.optBoolean("has_error", false))
-                putString("${i}_error_msg", obj.optString("error_msg", ""))
+            putInt("count", accounts.size)
+            for ((i, account) in accounts.withIndex()) {
+                putString("${i}_id", account.id)
+                putString("${i}_name", account.name)
+                putBoolean("${i}_has_data", account.hasData)
+                putFloat("${i}_5h_pct", account.fiveHourPct.toFloat())
+                putFloat("${i}_7d_pct", account.sevenDayPct.toFloat())
+                putLong("${i}_5h_resets", account.fiveHourResetsAtMs)
+                putLong("${i}_7d_resets", account.sevenDayResetsAtMs)
+                putBoolean("${i}_has_error", account.hasError)
+                putString("${i}_error_msg", account.errorMsg)
             }
             apply()
         }

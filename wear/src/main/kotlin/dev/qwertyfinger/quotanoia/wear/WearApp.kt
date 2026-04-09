@@ -5,7 +5,6 @@ import android.util.Log
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
-import org.json.JSONArray
 
 class WearApp :
     Application(),
@@ -35,10 +34,9 @@ class WearApp :
         if (messageEvent.path != PATH_USAGE) return
 
         try {
-            val json = String(messageEvent.data, Charsets.UTF_8)
-            val arr = JSONArray(json)
-            Log.d(TAG, "Parsed ${arr.length()} accounts from phone")
-            store.updateFromJson(arr)
+            val accounts = store.parsePayload(messageEvent.data)
+            Log.d(TAG, "Parsed ${accounts.size} accounts from phone")
+            store.updateFromSyncAccounts(accounts)
 
             // Request tile update
             try {

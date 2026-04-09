@@ -3,7 +3,7 @@ package dev.qwertyfinger.quotanoia
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import dev.qwertyfinger.quotanoia.data.AccountState
+import dev.qwertyfinger.quotanoia.data.model.AccountState
 import dev.qwertyfinger.quotanoia.widget.UsageWidgetReceiver
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

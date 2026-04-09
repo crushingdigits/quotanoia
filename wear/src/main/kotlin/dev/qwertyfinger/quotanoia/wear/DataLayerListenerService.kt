@@ -3,7 +3,6 @@ package dev.qwertyfinger.quotanoia.wear
 import android.util.Log
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
-import org.json.JSONArray
 
 /**
  * Receives usage data pushed from the phone app via MessageClient.
@@ -18,13 +17,11 @@ class DataLayerListenerService : WearableListenerService() {
         if (messageEvent.path != PATH_USAGE) return
 
         try {
-            val json = String(messageEvent.data, Charsets.UTF_8)
-            val arr = JSONArray(json)
-            val count = arr.length()
-            Log.d(TAG, "Received $count accounts from phone")
-
             val store = WearApp.instance.store
-            store.updateFromJson(arr)
+            val accounts = store.parsePayload(messageEvent.data)
+            Log.d(TAG, "Received ${accounts.size} accounts from phone")
+
+            store.updateFromSyncAccounts(accounts)
 
             // Request tile update
             try {

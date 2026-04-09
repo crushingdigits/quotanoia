@@ -35,7 +35,9 @@ android {
 
 dependencies {
     // Wear-specific dependencies only — common deps come from convention plugin
+    implementation(projects.data)
     implementation(projects.core.coroutines)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.core.ktx)
     implementation(libs.wear.tiles)
     implementation(libs.wear.tiles.material)

@@ -1,11 +1,12 @@
-package dev.qwertyfinger.quotanoia.data
+package dev.qwertyfinger.quotanoia.data.api
 
-import androidx.annotation.VisibleForTesting
-import dev.qwertyfinger.quotanoia.BuildConfig
+import dev.qwertyfinger.quotanoia.data.model.AccountError
+import dev.qwertyfinger.quotanoia.data.model.UsageData
+import dev.qwertyfinger.quotanoia.data.model.UsageWindow
+import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
-import org.json.JSONObject
 import timber.log.Timber
 import java.io.IOException
 import java.time.Instant
@@ -14,7 +15,9 @@ import java.util.concurrent.TimeUnit
 /** Result of a usage fetch — includes an optional rotated session key. */
 data class UsageFetchResult(val usage: UsageData, val newSessionKey: String? = null)
 
-class ApiClient {
+class ApiClient(debug: Boolean = false) {
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     private val client: OkHttpClient = OkHttpClient
         .Builder()
@@ -22,7 +25,7 @@ class ApiClient {
         .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .addInterceptor(
             HttpLoggingInterceptor { message -> Timber.tag("OkHttp").d(message) }.apply {
-                level = if (BuildConfig.DEBUG) {
+                level = if (debug) {
                     HttpLoggingInterceptor.Level.BODY
                 } else {
                     HttpLoggingInterceptor.Level.NONE
@@ -91,53 +94,22 @@ class ApiClient {
     }
 
     @Suppress("TooGenericExceptionCaught")
-    @VisibleForTesting
     internal fun parseUsage(
         body: String,
         newSessionKey: String?,
-    ): Result<UsageFetchResult> {
-        return try {
-            val json = JSONObject(body)
-            val fiveHour = json.optJSONObject("five_hour")
-            val sevenDay = json.optJSONObject("seven_day")
+    ): Result<UsageFetchResult> = try {
+        val response = json.decodeFromString<UsageResponse>(body)
 
-            if (fiveHour == null || sevenDay == null) {
-                return Result.failure(
-                    ApiException(AccountError.ParseError("Missing five_hour or seven_day in response")),
-                )
-            }
-
-            val data = UsageData(
-                fiveHour = parseWindow(fiveHour, "five_hour"),
-                sevenDay = parseWindow(sevenDay, "seven_day"),
-            )
-            Timber.d("Parsed usage: 5h=%.1f%%, 7d=%.1f%%", data.fiveHour.utilization, data.sevenDay.utilization)
-            if (newSessionKey != null) Timber.d("Session key rotated")
-            Result.success(UsageFetchResult(data, newSessionKey))
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to parse usage response")
-            Result.failure(ApiException(AccountError.ParseError(e.message ?: "Parse failed")))
-        }
-    }
-
-    @Suppress("TooGenericExceptionCaught", "SwallowedException")
-    internal fun parseWindow(
-        obj: JSONObject,
-        label: String,
-    ): UsageWindow {
-        val utilization = obj.optDouble("utilization", 0.0).toFloat()
-        val resetsAtRaw = obj.optString("resets_at", "")
-        val resetsAt = resetsAtRaw
-            .takeIf { it.isNotEmpty() && it != "null" }
-            ?.let {
-                try {
-                    Instant.parse(it)
-                } catch (e: Exception) {
-                    Timber.w("Unparseable resets_at in %s: %s", label, it)
-                    null
-                }
-            }
-        return UsageWindow(utilization, resetsAt)
+        val data = UsageData(
+            fiveHour = response.fiveHour.toDomain("five_hour"),
+            sevenDay = response.sevenDay.toDomain("seven_day"),
+        )
+        Timber.d("Parsed usage: 5h=%.1f%%, 7d=%.1f%%", data.fiveHour.utilization, data.sevenDay.utilization)
+        if (newSessionKey != null) Timber.d("Session key rotated")
+        Result.success(UsageFetchResult(data, newSessionKey))
+    } catch (e: Exception) {
+        Timber.e(e, "Failed to parse usage response")
+        Result.failure(ApiException(AccountError.ParseError(e.message ?: "Parse failed")))
     }
 
     /** Extract rotated sessionKey from Set-Cookie header if present. */
@@ -168,4 +140,19 @@ class ApiClient {
         private const val HTTP_SERVER_ERROR_MIN = 500
         private const val HTTP_SERVER_ERROR_MAX = 599
     }
+}
+
+@Suppress("TooGenericExceptionCaught", "SwallowedException")
+internal fun WindowResponse.toDomain(label: String): UsageWindow {
+    val resetsAt = resetsAt
+        ?.takeIf { it.isNotEmpty() && it != "null" }
+        ?.let {
+            try {
+                Instant.parse(it)
+            } catch (e: Exception) {
+                Timber.w("Unparseable resets_at in %s: %s", label, it)
+                null
+            }
+        }
+    return UsageWindow(utilization.toFloat(), resetsAt)
 }

@@ -1,16 +1,25 @@
-package dev.qwertyfinger.quotanoia.data
+package dev.qwertyfinger.quotanoia.data.store
 
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import org.json.JSONArray
-import org.json.JSONObject
+import dev.qwertyfinger.quotanoia.data.model.AccountError
+import dev.qwertyfinger.quotanoia.data.model.BASE_POLL_INTERVAL_MS
+import dev.qwertyfinger.quotanoia.data.model.ClaudeAccount
+import dev.qwertyfinger.quotanoia.data.model.UsageData
+import dev.qwertyfinger.quotanoia.data.model.UsageWindow
+import kotlinx.serialization.json.Json
+import timber.log.Timber
+import java.time.Instant
 
 /**
  * Persists accounts (with tokens encrypted) and usage cache.
  */
+@Suppress("TooManyFunctions")
 class AccountStore(context: Context) {
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     private val masterKey = MasterKey
         .Builder(context)
@@ -32,36 +41,16 @@ class AccountStore(context: Context) {
     // ── Accounts ────────────────────────────────────────────
 
     fun loadAccounts(): List<ClaudeAccount> {
-        val json = securePrefs.getString(KEY_ACCOUNTS, null) ?: return emptyList()
+        val raw = securePrefs.getString(KEY_ACCOUNTS, null) ?: return emptyList()
         return try {
-            val arr = JSONArray(json)
-            (0 until arr.length()).map { i ->
-                val obj = arr.getJSONObject(i)
-                ClaudeAccount(
-                    id = obj.getString("id"),
-                    name = obj.getString("name"),
-                    sessionKey = obj.getString("sessionKey"),
-                    orgId = obj.getString("orgId"),
-                )
-            }
+            json.decodeFromString<List<ClaudeAccount>>(raw)
         } catch (_: Exception) {
             emptyList()
         }
     }
 
     fun saveAccounts(accounts: List<ClaudeAccount>) {
-        val arr = JSONArray()
-        accounts.forEach { a ->
-            arr.put(
-                JSONObject().apply {
-                    put("id", a.id)
-                    put("name", a.name)
-                    put("sessionKey", a.sessionKey)
-                    put("orgId", a.orgId)
-                },
-            )
-        }
-        securePrefs.edit().putString(KEY_ACCOUNTS, arr.toString()).apply()
+        securePrefs.edit().putString(KEY_ACCOUNTS, json.encodeToString(accounts)).apply()
     }
 
     fun addAccount(account: ClaudeAccount) {
@@ -90,16 +79,16 @@ class AccountStore(context: Context) {
         accountId: String,
         usage: UsageData,
     ) {
-        val obj = JSONObject().apply {
-            put("fiveHourUtil", usage.fiveHour.utilization)
-            put("fiveHourResets", usage.fiveHour.resetsAt?.toString() ?: JSONObject.NULL)
-            put("sevenDayUtil", usage.sevenDay.utilization)
-            put("sevenDayResets", usage.sevenDay.resetsAt?.toString() ?: JSONObject.NULL)
-            put("fetchedAt", usage.fetchedAt.toString())
-        }
+        val dto = UsageCacheDto(
+            fiveHourUtil = usage.fiveHour.utilization,
+            fiveHourResets = usage.fiveHour.resetsAt?.toString(),
+            sevenDayUtil = usage.sevenDay.utilization,
+            sevenDayResets = usage.sevenDay.resetsAt?.toString(),
+            fetchedAt = usage.fetchedAt.toString(),
+        )
         cachePrefs
             .edit()
-            .putString("usage_$accountId", obj.toString())
+            .putString("usage_$accountId", json.encodeToString(dto))
             .remove("error_$accountId")
             .putLong("backoff_$accountId", BASE_POLL_INTERVAL_MS)
             .apply()
@@ -119,35 +108,19 @@ class AccountStore(context: Context) {
 
     @Suppress("ReturnCount")
     fun getCachedUsage(accountId: String): UsageData? {
-        val json = cachePrefs.getString("usage_$accountId", null) ?: return null
+        val raw = cachePrefs.getString("usage_$accountId", null) ?: return null
         return try {
-            val obj = JSONObject(json)
+            val dto = json.decodeFromString<UsageCacheDto>(raw)
             UsageData(
                 fiveHour = UsageWindow(
-                    utilization = obj.optDouble("fiveHourUtil", 0.0).toFloat(),
-                    resetsAt = obj
-                        .optString("fiveHourResets", "")
-                        .takeIf { it.isNotEmpty() && it != "null" }
-                        ?.let { java.time.Instant.parse(it) },
+                    utilization = dto.fiveHourUtil,
+                    resetsAt = parseInstant(dto.fiveHourResets),
                 ),
                 sevenDay = UsageWindow(
-                    utilization = obj.optDouble("sevenDayUtil", 0.0).toFloat(),
-                    resetsAt = obj
-                        .optString("sevenDayResets", "")
-                        .takeIf { it.isNotEmpty() && it != "null" }
-                        ?.let { java.time.Instant.parse(it) },
+                    utilization = dto.sevenDayUtil,
+                    resetsAt = parseInstant(dto.sevenDayResets),
                 ),
-                fetchedAt = obj
-                    .optString("fetchedAt", "")
-                    .takeIf { it.isNotEmpty() }
-                    ?.let {
-                        try {
-                            java.time.Instant.parse(it)
-                        } catch (_: Exception) {
-                            null
-                        }
-                    }
-                    ?: return null,
+                fetchedAt = parseInstant(dto.fetchedAt) ?: return null,
             )
         } catch (_: Exception) {
             null
@@ -165,6 +138,17 @@ class AccountStore(context: Context) {
             .remove("error_$accountId")
             .remove("backoff_$accountId")
             .apply()
+    }
+
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
+    private fun parseInstant(value: String?): Instant? {
+        if (value.isNullOrEmpty() || value == "null") return null
+        return try {
+            Instant.parse(value)
+        } catch (e: Exception) {
+            Timber.w("Unparseable Instant: %s", value)
+            null
+        }
     }
 
     companion object {

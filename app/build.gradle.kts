@@ -37,6 +37,7 @@ android {
 
 dependencies {
     // App-specific dependencies only — common deps come from convention plugin
+    implementation(projects.data)
     implementation(projects.core.coroutines)
     implementation(libs.compose.material.icons)
     implementation(libs.core.ktx)
@@ -46,11 +47,6 @@ dependencies {
     implementation(libs.glance.appwidget)
     implementation(libs.glance.material3)
 
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.logging)
     implementation(libs.workmanager)
-    implementation(libs.security.crypto)
     implementation(libs.play.services.wearable)
-
-    testImplementation("org.json:json:20231013")
 }

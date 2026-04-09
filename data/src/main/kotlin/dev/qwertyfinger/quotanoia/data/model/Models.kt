@@ -1,8 +1,10 @@
-package dev.qwertyfinger.quotanoia.data
+package dev.qwertyfinger.quotanoia.data.model
 
+import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.util.UUID
 
+@Serializable
 data class ClaudeAccount(
     val id: String = UUID.randomUUID().toString(),
     val name: String,

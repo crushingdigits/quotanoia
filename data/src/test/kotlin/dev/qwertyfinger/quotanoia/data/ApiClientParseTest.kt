@@ -1,5 +1,8 @@
 package dev.qwertyfinger.quotanoia.data
 
+import dev.qwertyfinger.quotanoia.data.api.ApiClient
+import dev.qwertyfinger.quotanoia.data.api.UsageFetchResult
+import dev.qwertyfinger.quotanoia.data.model.AccountError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -215,68 +218,61 @@ class ApiClientParseTest {
         assertParseError(result)
     }
 
-    // ── parseWindow: direct tests ──────────────────────────────────
+    // ── Window parsing via parseUsage ─────────────────────────────
 
     @Test
-    fun `parseWindow with valid data returns correct window`() {
-        val obj = org.json.JSONObject().apply {
-            put("utilization", 42.5)
-            put("resets_at", "2026-04-07T18:00:00Z")
-        }
-        val window = client.parseWindow(obj, "test")
-        assertEquals(42.5f, window.utilization, 0.01f)
-        assertEquals(Instant.parse("2026-04-07T18:00:00Z"), window.resetsAt)
+    fun `parseUsage with valid window data returns correct window`() {
+        val json = """
+            {
+              "five_hour": { "utilization": 42.5, "resets_at": "2026-04-07T18:00:00Z" },
+              "seven_day": { "utilization": 10.0, "resets_at": "2026-04-10T00:00:00Z" }
+            }
+        """.trimIndent()
+
+        val result = client.parseUsage(json, null)
+
+        assertTrue(result.isSuccess)
+        val fiveHour = result.getOrThrow().usage.fiveHour
+        assertEquals(42.5f, fiveHour.utilization, 0.01f)
+        assertEquals(Instant.parse("2026-04-07T18:00:00Z"), fiveHour.resetsAt)
     }
 
     @Test
-    fun `parseWindow with null resets_at returns null instant`() {
-        val obj = org.json.JSONObject().apply {
-            put("utilization", 0.0)
-            put("resets_at", org.json.JSONObject.NULL)
-        }
-        val window = client.parseWindow(obj, "test")
-        assertEquals(0.0f, window.utilization, 0.01f)
-        assertNull(window.resetsAt)
+    fun `parseUsage with empty resets_at returns null instant`() {
+        val json = """
+            {
+              "five_hour": { "utilization": 50.0, "resets_at": "" },
+              "seven_day": { "utilization": 10.0, "resets_at": "2026-04-10T00:00:00Z" }
+            }
+        """.trimIndent()
+
+        val result = client.parseUsage(json, null)
+
+        assertTrue(result.isSuccess)
+        assertNull(
+            result
+                .getOrThrow()
+                .usage.fiveHour.resetsAt,
+        )
     }
 
     @Test
-    fun `parseWindow with malformed resets_at returns null instant`() {
-        val obj = org.json.JSONObject().apply {
-            put("utilization", 75.0)
-            put("resets_at", "not-a-timestamp")
-        }
-        val window = client.parseWindow(obj, "test")
-        assertEquals(75.0f, window.utilization, 0.01f)
-        assertNull(window.resetsAt)
-    }
+    fun `parseUsage with string null resets_at returns null`() {
+        val json = """
+            {
+              "five_hour": { "utilization": 20.0, "resets_at": "null" },
+              "seven_day": { "utilization": 10.0, "resets_at": "2026-04-10T00:00:00Z" }
+            }
+        """.trimIndent()
 
-    @Test
-    fun `parseWindow with missing utilization defaults to zero`() {
-        val obj = org.json.JSONObject().apply {
-            put("resets_at", "2026-04-07T18:00:00Z")
-        }
-        val window = client.parseWindow(obj, "test")
-        assertEquals(0.0f, window.utilization, 0.01f)
-    }
+        val result = client.parseUsage(json, null)
 
-    @Test
-    fun `parseWindow with string null resets_at returns null`() {
-        val obj = org.json.JSONObject().apply {
-            put("utilization", 20.0)
-            put("resets_at", "null")
-        }
-        val window = client.parseWindow(obj, "test")
-        assertNull(window.resetsAt)
-    }
-
-    @Test
-    fun `parseWindow with empty resets_at returns null`() {
-        val obj = org.json.JSONObject().apply {
-            put("utilization", 50.0)
-            put("resets_at", "")
-        }
-        val window = client.parseWindow(obj, "test")
-        assertNull(window.resetsAt)
+        assertTrue(result.isSuccess)
+        assertNull(
+            result
+                .getOrThrow()
+                .usage.fiveHour.resetsAt,
+        )
     }
 
     // ── Helpers ─────────────────────────────────────────────────────
