@@ -4,24 +4,14 @@ package dev.crushingdigits.quotanoia
 
 import android.app.Application
 import android.util.Log
-import com.google.android.gms.wearable.MessageClient
-import com.google.android.gms.wearable.MessageEvent
-import com.google.android.gms.wearable.Wearable
 import dev.crushingdigits.quotanoia.data.api.ApiClient
 import dev.crushingdigits.quotanoia.data.repository.UsageRepository
 import dev.crushingdigits.quotanoia.data.store.AccountStore
 import dev.crushingdigits.quotanoia.data.sync.WearSyncManager
-import dev.crushingdigits.quotanoia.widget.UsageWidgetReceiver
 import dev.crushingdigits.quotanoia.worker.UsageWorker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
-class QuotanoiaApp : Application(), MessageClient.OnMessageReceivedListener {
-
-    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+class QuotanoiaApp : Application() {
 
     lateinit var store: AccountStore
         private set
@@ -45,26 +35,10 @@ class QuotanoiaApp : Application(), MessageClient.OnMessageReceivedListener {
         repository = UsageRepository(store, ApiClient(debug = BuildConfig.DEBUG), wearSync)
         repository.initialize()
 
-        // Listen for refresh requests from the watch
-        Wearable.getMessageClient(this).addListener(this)
-        Timber.d("Phone MessageClient listener registered")
-
         UsageWorker.enqueue(this)
     }
 
-    override fun onMessageReceived(messageEvent: MessageEvent) {
-        Timber.d("Message from watch: path=%s", messageEvent.path)
-        if (messageEvent.path == PATH_REFRESH_REQUEST) {
-            Timber.d("Watch requested refresh — fetching all accounts")
-            appScope.launch {
-                repository.refreshAll()
-                UsageWidgetReceiver.updateAll(this@QuotanoiaApp)
-            }
-        }
-    }
-
     companion object {
-        const val PATH_REFRESH_REQUEST = "/refresh_request"
         lateinit var instance: QuotanoiaApp
             private set
     }
